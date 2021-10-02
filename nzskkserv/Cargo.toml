@@ -1,0 +1,9 @@
+[package]
+name = "nzskkserv"
+version = "0.1.0"
+edition = "2018"
+
+[lib]
+name = "nzskkserv_lib"
+path = "src/lib.rs"
+
