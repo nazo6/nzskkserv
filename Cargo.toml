@@ -1,6 +1,6 @@
 [workspace]
 
 members = [
-    "nzskkserv",
+    "nzskkserv-lib",
     "nzskkserv-cli",
 ]

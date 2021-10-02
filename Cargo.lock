@@ -3,9 +3,12 @@
 version = 3
 
 [[package]]
-name = "nzskkserv"
+name = "nzskkserv-cli"
 version = "0.1.0"
+dependencies = [
+ "nzskkserv-lib",
+]
 
 [[package]]
-name = "nzskkserv-cli"
+name = "nzskkserv-lib"
 version = "0.1.0"
