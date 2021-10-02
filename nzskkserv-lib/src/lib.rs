@@ -1,22 +1,31 @@
+use std::io::Read;
 use std::net::{TcpListener, TcpStream};
+use std::string::String;
 
-fn handle_client(stream: TcpStream) {
-    let mut stream = std::io::BufReader::new(stream);
-
-    let mut first_line = String::new();
-    if let Err(err) = stream.read_line(&mut first_line) {
-        panic!("error during receive a line: {}", err);
-    }
-
-    println!(stream.get())
+pub struct StartOptions {
+    pub addr: String,
 }
 
-pub fn start() -> std::io::Result<()> {
-    let listener = TcpListener::bind("127.0.0.1:80")?;
+pub fn start(options: StartOptions) -> std::io::Result<()> {
+    let listener = TcpListener::bind(&options.addr)?;
+    println!("{}", &options.addr);
 
     // accept connections and process them serially
     for stream in listener.incoming() {
-        handle_client(stream?);
+        let stream = stream?;
+        std::thread::spawn(move || {
+            handle_connection(stream);
+        });
     }
     Ok(())
+}
+
+fn handle_connection(mut stream: TcpStream) {
+    println!("!!!");
+    println!("{}", stream.local_addr().unwrap());
+    let mut buffer = [0; 1024];
+
+    stream.read(&mut buffer).unwrap();
+
+    println!("Request: {}", String::from_utf8_lossy(&buffer[..]));
 }
