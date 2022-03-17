@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use bytes::{Buf, BytesMut};
+use bytes::BytesMut;
 use encoding_rs::{EUC_JP, UTF_8};
 use tokio_util::codec::{Decoder, Encoder};
 
@@ -38,7 +38,9 @@ impl Decoder for SkkCodec {
             let command = &str.chars().next().context("Request is empty")?;
             match command {
                 '0' => Ok(Some(SkkIncomingEvent::Disconnect)),
-                '1' => Ok(Some(SkkIncomingEvent::Convert(str[1..].to_string()))),
+                '1' => Ok(Some(SkkIncomingEvent::Convert(
+                    str[1..str.len() - 1].to_string(),
+                ))),
                 '2' => Ok(Some(SkkIncomingEvent::Version)),
                 '3' => Ok(Some(SkkIncomingEvent::Hostname)),
                 '4' => Ok(Some(SkkIncomingEvent::Server)),
@@ -56,10 +58,10 @@ impl Encoder<SkkOutcomingEvent> for SkkCodec {
             SkkOutcomingEvent::Convert(candidates) => {
                 let mut str = "1".to_string();
                 candidates.iter().for_each(|candidate| {
-                    str.push_str("/");
+                    str.push('/');
                     str.push_str(candidate);
                 });
-                str.push_str("\n");
+                str.push('\n');
 
                 str
             }
@@ -67,12 +69,12 @@ impl Encoder<SkkOutcomingEvent> for SkkCodec {
             SkkOutcomingEvent::Version => "nzskkserv-server/0.1.0 ".to_string(),
             SkkOutcomingEvent::Hostname => " ".to_string(),
         };
-        let (cow, encoding_used, had_errors) = match self.encoding {
+        let (bytes, _, _) = match self.encoding {
             Encoding::Utf8 => UTF_8.encode(&text),
             Encoding::Eucjp => EUC_JP.encode(&text),
         };
 
-        let bytes = cow.to_vec();
+        let bytes = bytes.to_vec();
 
         dst.reserve(bytes.len());
         dst.extend_from_slice(&bytes);
