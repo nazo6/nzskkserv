@@ -1,14 +1,19 @@
+use std::net::{IpAddr, Ipv4Addr};
+
 use clap::{App, Arg};
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let matches = App::new("nzskkserv cli")
         .version("0.0.1")
         .author("nazo6")
         .arg(Arg::with_name("command").required(false))
         .get_matches();
 
-    let opts = nzskkserv::StartOptions {
-        addr: "127.0.0.1:1000".to_string(),
-    };
-    nzskkserv::start(opts).unwrap_err();
+    let server = nzskkserv_server::Server::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1000);
+    let result = server.start().await;
+    match result {
+        Ok(()) => (),
+        Err(err) => println!("{}", err),
+    }
 }

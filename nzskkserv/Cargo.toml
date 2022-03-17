@@ -7,3 +7,5 @@ edition = "2018"
 name = "nzskkserv"
 path = "src/lib.rs"
 
+[dependencies]
+tokio = {version = "1", features = ["net"]}
