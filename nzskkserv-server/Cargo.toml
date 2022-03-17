@@ -9,3 +9,5 @@ tokio-util = { version = "0.7", features = ["full"] }
 tokio-stream = "0.1"
 anyhow = "1"
 bytes = "1"
+encoding_rs = "0.8"
+futures = "0.3"

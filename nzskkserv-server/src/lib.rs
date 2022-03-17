@@ -1,2 +1,6 @@
 pub mod server;
-mod decoder;
+
+pub enum Encoding {
+    Utf8,
+    Eucjp,
+}

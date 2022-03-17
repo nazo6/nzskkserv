@@ -1,0 +1,82 @@
+use anyhow::{Context, Result};
+use bytes::{Buf, BytesMut};
+use encoding_rs::{EUC_JP, UTF_8};
+use tokio_util::codec::{Decoder, Encoder};
+
+use crate::Encoding;
+
+use super::interface::{SkkIncomingEvent, SkkOutcomingEvent};
+
+pub(crate) struct SkkCodec {
+    encoding: Encoding,
+}
+
+impl SkkCodec {
+    pub fn new(encoding: Encoding) -> SkkCodec {
+        SkkCodec { encoding }
+    }
+}
+
+impl Decoder for SkkCodec {
+    type Item = SkkIncomingEvent;
+    type Error = anyhow::Error;
+    fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>> {
+        let src = if !src.is_empty() {
+            let len = src.len();
+            src.split_to(len)
+        } else {
+            return Ok(None);
+        };
+        let (cow, _, had_errors) = match self.encoding {
+            Encoding::Utf8 => UTF_8.decode(&src),
+            Encoding::Eucjp => EUC_JP.decode(&src),
+        };
+        if had_errors {
+            Err(anyhow::anyhow!("Error!"))
+        } else {
+            let str = cow.to_string();
+            let command = &str.chars().next().context("Request is empty")?;
+            match command {
+                '0' => Ok(Some(SkkIncomingEvent::Disconnect)),
+                '1' => Ok(Some(SkkIncomingEvent::Convert(str[1..].to_string()))),
+                '2' => Ok(Some(SkkIncomingEvent::Version)),
+                '3' => Ok(Some(SkkIncomingEvent::Hostname)),
+                '4' => Ok(Some(SkkIncomingEvent::Server)),
+                _ => Err(anyhow::anyhow!("Unknown command!")),
+            }
+        }
+    }
+}
+
+impl Encoder<SkkOutcomingEvent> for SkkCodec {
+    type Error = anyhow::Error;
+
+    fn encode(&mut self, event: SkkOutcomingEvent, dst: &mut BytesMut) -> Result<(), Self::Error> {
+        let text = match event {
+            SkkOutcomingEvent::Convert(candidates) => {
+                let mut str = "1".to_string();
+                candidates.iter().for_each(|candidate| {
+                    str.push_str("/");
+                    str.push_str(candidate);
+                });
+                str.push_str("\n");
+
+                str
+            }
+            SkkOutcomingEvent::Server => "4\n".to_string(),
+            SkkOutcomingEvent::Version => "nzskkserv-server/0.1.0 ".to_string(),
+            SkkOutcomingEvent::Hostname => " ".to_string(),
+        };
+        let (cow, encoding_used, had_errors) = match self.encoding {
+            Encoding::Utf8 => UTF_8.encode(&text),
+            Encoding::Eucjp => EUC_JP.encode(&text),
+        };
+
+        let bytes = cow.to_vec();
+
+        dst.reserve(bytes.len());
+        dst.extend_from_slice(&bytes);
+
+        Ok(())
+    }
+}

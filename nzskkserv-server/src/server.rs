@@ -1,8 +1,19 @@
+mod codec;
+mod interface;
+
 use anyhow::Result;
 use std::net::IpAddr;
+use tokio_util::codec::{BytesCodec, Framed};
+
+use bytes::Bytes;
+use futures::SinkExt;
 
 use tokio::net::{TcpListener, TcpStream};
 use tokio_stream::StreamExt;
+
+use codec::SkkCodec;
+
+use crate::server::interface::{SkkIncomingEvent, SkkOutcomingEvent};
 
 pub struct Server {
     address: IpAddr,
@@ -26,19 +37,34 @@ impl Server {
     }
 }
 
-async fn process(mut stream: TcpStream) {
-    let mut buf = vec![0; 1024];
-    match stream.read(&mut buf).await {
-        Ok(0) => {
-            println!("Connect end");
-        }
-        Ok(n) => {
-            println!("size: {n}");
-            let str = String::from_utf8(buf).unwrap();
-            println!("{str}")
-        }
-        Err(_) => {
-            println!("Error");
+async fn process(stream: TcpStream) {
+    let mut framed = Framed::new(stream, SkkCodec::new(crate::Encoding::Utf8));
+    while let Some(message) = framed.next().await {
+        match message {
+            Ok(data) => {
+                println!("{:?}", data);
+                let result = match data {
+                    SkkIncomingEvent::Disconnect => {
+                        break;
+                    }
+                    SkkIncomingEvent::Convert(str) => {
+                        framed.send(SkkOutcomingEvent::Convert(
+                            vec!["さんぷる".to_string()]
+                        )).await
+                    }
+                    SkkIncomingEvent::Server => {
+                        framed.send(SkkOutcomingEvent::Server).await
+                    }
+                    SkkIncomingEvent::Version => {
+                        framed.send(SkkOutcomingEvent::Version).await
+                    }
+                    SkkIncomingEvent::Hostname => {
+                        framed.send(SkkOutcomingEvent::Hostname).await
+                    }
+                };
+            }
+            Err(err) => println!("Socket closed with error: {:?}", err),
         }
     }
+    println!("socket closed");
 }
