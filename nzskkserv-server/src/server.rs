@@ -13,7 +13,7 @@ mod interface;
 use codec::SkkCodec;
 use interface::{SkkIncomingEvent, SkkOutcomingEvent};
 
-use crate::error::Error;
+use crate::{error::Error, server::interface::Candidates};
 
 pub struct Server {
     address: IpAddr,
@@ -38,7 +38,7 @@ impl Server {
 }
 
 async fn process(stream: TcpStream) -> Result<(), Error> {
-    let mut framed = Framed::new(stream, SkkCodec::new(crate::Encoding::Eucjp));
+    let mut framed = Framed::new(stream, SkkCodec::new(crate::Encoding::Utf8));
     while let Some(message) = framed.next().await {
         match message {
             Ok(data) => {
@@ -49,7 +49,10 @@ async fn process(stream: TcpStream) -> Result<(), Error> {
                     }
                     SkkIncomingEvent::Convert(str) => {
                         framed
-                            .send(SkkOutcomingEvent::Convert(vec!["さんぷる".to_string()]))
+                            .send(SkkOutcomingEvent::Convert(Candidates{ 
+                                content: vec!["さんぷる".to_string()],
+                                anotation: Some("ns".to_string())
+                            }))
                             .await
                     }
                     SkkIncomingEvent::Server => framed.send(SkkOutcomingEvent::Server).await,

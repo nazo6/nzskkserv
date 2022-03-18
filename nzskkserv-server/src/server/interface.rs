@@ -13,8 +13,14 @@ pub(crate) enum SkkIncomingEvent {
 }
 
 #[derive(Debug)]
+pub(crate) struct Candidates {
+    pub content: Vec<String>,
+    pub anotation: Option<String>
+}
+
+#[derive(Debug)]
 pub(crate) enum SkkOutcomingEvent {
-    Convert(Vec<String>),
+    Convert(Candidates),
     Version,
     Hostname,
     Server,

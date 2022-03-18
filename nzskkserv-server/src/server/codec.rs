@@ -1,5 +1,6 @@
 use bytes::BytesMut;
 use encoding_rs::{EUC_JP, UTF_8};
+use log::info;
 use tokio_util::codec::{Decoder, Encoder};
 
 use crate::{error::Error, Encoding};
@@ -41,9 +42,13 @@ impl Decoder for SkkCodec {
             };
             match command {
                 '0' => Ok(Some(SkkIncomingEvent::Disconnect)),
-                '1' => Ok(Some(SkkIncomingEvent::Convert(
-                    str[1..str.len() - 1].to_string(),
-                ))),
+                '1' => {
+                    let content = str.get(1..str.len() - 1);
+                    match content {
+                        Some(content) => Ok(Some(SkkIncomingEvent::Convert(content.to_string()))),
+                        None => Err(Error::InvalidIncomingCommand(str.to_string())),
+                    }
+                }
                 '2' => Ok(Some(SkkIncomingEvent::Version)),
                 '3' => Ok(Some(SkkIncomingEvent::Hostname)),
                 '4' => Ok(Some(SkkIncomingEvent::Server)),
@@ -60,10 +65,20 @@ impl Encoder<SkkOutcomingEvent> for SkkCodec {
         let text = match event {
             SkkOutcomingEvent::Convert(candidates) => {
                 let mut str = "1".to_string();
-                candidates.iter().for_each(|candidate| {
+                let annotation = match candidates.anotation {
+                    Some(annotation) => {
+                        let mut str = ";".to_string();
+                        str.push_str(&annotation);
+                        str
+                    }
+                    None => "".to_string(),
+                };
+                candidates.content.iter().for_each(|candidate| {
                     str.push('/');
                     str.push_str(candidate);
+                    str.push_str(&annotation);
                 });
+                str.push('/');
                 str.push('\n');
 
                 str
@@ -72,6 +87,7 @@ impl Encoder<SkkOutcomingEvent> for SkkCodec {
             SkkOutcomingEvent::Version => "nzskkserv-server/0.1.0 ".to_string(),
             SkkOutcomingEvent::Hostname => " ".to_string(),
         };
+        info!("Encoded data: {:?}", &text);
         let (bytes, _, _) = match self.encoding {
             Encoding::Utf8 => UTF_8.encode(&text),
             Encoding::Eucjp => EUC_JP.encode(&text),
