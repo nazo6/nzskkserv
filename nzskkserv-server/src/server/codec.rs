@@ -1,9 +1,8 @@
-use anyhow::{Context, Result};
 use bytes::BytesMut;
 use encoding_rs::{EUC_JP, UTF_8};
 use tokio_util::codec::{Decoder, Encoder};
 
-use crate::Encoding;
+use crate::{error::Error, Encoding};
 
 use super::interface::{SkkIncomingEvent, SkkOutcomingEvent};
 
@@ -19,8 +18,8 @@ impl SkkCodec {
 
 impl Decoder for SkkCodec {
     type Item = SkkIncomingEvent;
-    type Error = anyhow::Error;
-    fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>> {
+    type Error = Error;
+    fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
         let src = if !src.is_empty() {
             let len = src.len();
             src.split_to(len)
@@ -32,10 +31,14 @@ impl Decoder for SkkCodec {
             Encoding::Eucjp => EUC_JP.decode(&src),
         };
         if had_errors {
-            Err(anyhow::anyhow!("Error!"))
+            Err(Error::Decoding(src.freeze()))
         } else {
             let str = cow.to_string();
-            let command = &str.chars().next().context("Request is empty")?;
+            let command = &str.chars().next();
+            let command = match command {
+                Some(command) => command,
+                None => return Err(Error::InvalidIncomingCommand(str)),
+            };
             match command {
                 '0' => Ok(Some(SkkIncomingEvent::Disconnect)),
                 '1' => Ok(Some(SkkIncomingEvent::Convert(
@@ -44,14 +47,14 @@ impl Decoder for SkkCodec {
                 '2' => Ok(Some(SkkIncomingEvent::Version)),
                 '3' => Ok(Some(SkkIncomingEvent::Hostname)),
                 '4' => Ok(Some(SkkIncomingEvent::Server)),
-                _ => Err(anyhow::anyhow!("Unknown command!")),
+                _ => Err(Error::InvalidIncomingCommand(str)),
             }
         }
     }
 }
 
 impl Encoder<SkkOutcomingEvent> for SkkCodec {
-    type Error = anyhow::Error;
+    type Error = Error;
 
     fn encode(&mut self, event: SkkOutcomingEvent, dst: &mut BytesMut) -> Result<(), Self::Error> {
         let text = match event {

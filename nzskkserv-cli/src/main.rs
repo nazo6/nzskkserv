@@ -1,11 +1,12 @@
 use std::net::{IpAddr, Ipv4Addr};
 
-use clap::{Command, Arg};
+use clap::{Arg, Command};
 
 use nzskkserv_server::server::Server;
 
 #[tokio::main]
 async fn main() {
+    simple_logger::init_with_level(log::Level::Debug).unwrap();
     let matches = Command::new("nzskkserv cli")
         .version("0.0.1")
         .author("nazo6")
