@@ -13,7 +13,7 @@ pub(crate) enum SkkIncomingEvent {
 }
 
 #[derive(Debug)]
-pub(crate) struct Candidates {
+pub struct Candidates {
     pub content: Vec<String>,
     pub anotation: Option<String>
 }
