@@ -3,7 +3,8 @@ use encoding_rs::{EUC_JP, UTF_8};
 use log::info;
 use tokio_util::codec::{Decoder, Encoder};
 
-use crate::{error::Error, Encoding};
+use super::error::Error;
+use crate::Encoding;
 
 use super::interface::{SkkIncomingEvent, SkkOutcomingEvent};
 

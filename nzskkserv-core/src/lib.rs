@@ -1,75 +1,52 @@
-use config::Config;
-use directories::ProjectDirs;
-use log::debug;
-use nzskkserv_server::Candidates;
-use std::{cell::RefCell, collections::HashMap, net::IpAddr, future::Future};
-use thiserror::Error;
-use tokio::fs;
+use std::{
+    collections::HashMap,
+    net::{IpAddr, Ipv4Addr}, cell::RefCell,
+};
 
-mod config;
+use log::info;
+use nzskkserv_server::server::Server;
+use tokio::sync::broadcast;
 
-pub use nzskkserv_server::Encoding;
+pub mod error;
+pub use error::Error;
 
-struct Dict {
-    contents: HashMap<String, String>,
-    name: String,
+pub struct Manager {
+    server: Server,
+    kill_sender: RefCell<Option<tokio::sync::broadcast::Sender<()>>>,
 }
 
-pub struct Server {
-    dicts: RefCell<Vec<Dict>>,
-    config: RefCell<Config>,
-    server: Option<nzskkserv_server::Server>,
-}
+impl Manager {
+    pub fn new(address: IpAddr, port: u16) -> Manager {
+        let mut dict1 = HashMap::new();
+        dict1.insert("あ".to_string(), "おっぱっぴー".to_string());
 
-#[derive(Debug, Error)]
-pub enum Error {
-    #[error("Server error: {0}")]
-    Server(nzskkserv_server::error::Error),
-    #[error("Failed to read config: {0}")]
-    ConfigRead(String),
-    #[error("Failed to write config: {0}")]
-    ConfigWrite(String),
-    #[error(transparent)]
-    IO(#[from] std::io::Error),
-    #[error("Error occurred: {0}")]
-    Other(String),
-}
+        let dicts = vec![dict1];
 
-impl Default for Server {
-    fn default() -> Self {
-        Server {
-            dicts: RefCell::new(Vec::new()),
-            config: RefCell::new(config::DEFAULT_CONFIG),
-            server: None
-        }
+        let server = Server::new(address, port, dicts, false);
+
+        Manager { server, kill_sender: RefCell::new(None) }
     }
-}
-
-impl Server {
-    pub async fn load(&self, config_dir: Option<&str>) -> Result<(), Error> {
-        let loaded_config = config::load_config(config_dir).await?;
-
-        let mut config = self.config.borrow_mut();
-        *config = loaded_config;
-
-        Ok(())
-    }
-    pub async fn start(&mut self, address: IpAddr, port: u16) -> Result<(), Error> {
-        self.server = Some(nzskkserv_server::Server::new(address, port, move |str| async move{
-            debug!("Starting convertion {}", &str);
-            Candidates {
-                content: vec!["a".to_string()],
-                anotation: Some("a".to_string())
-            }
-        }));
-        self.server.as_ref().unwrap().start().await.map_err(Error::Server)
+    pub async fn start(&self) {
+        let (sender, reciever) = broadcast::channel(1);
+        let mut kill_sender = self.kill_sender.borrow_mut();
+        *kill_sender = Some(sender);
+        drop(kill_sender);
+        let result = self.server.start(reciever).await;
+        info!("Server stopped. Status: {:?}", result)
     }
     pub async fn stop(&self) -> Result<(), Error> {
-        match &self.server {
-            Some(server) => {
-                server.shutdown();
-                Ok(())
-            },
+        let kill_sender = self.kill_sender.borrow();
+        match &*kill_sender {
+            Some(sender) => {
+                match sender.send(()) {
+                    Ok(_) => {
+                        Ok(())
+                    }
+                    Err(e) => {
+                        Err(Error::Other(e.to_string()))
+                    }
+                }
+            }
             None => Err(Error::Other("Server is not started".to_string()))
         }
     }

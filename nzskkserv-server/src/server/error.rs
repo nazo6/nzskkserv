@@ -10,7 +10,7 @@ pub enum Error {
     #[error("Error occurred while encoding")]
     Encoding(Bytes),
     #[error(transparent)]
-    IOError(#[from] std::io::Error),
+    Io(#[from] std::io::Error),
     #[error("Unknown error {0}")]
     Unknown(String),
 }

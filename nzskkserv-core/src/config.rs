@@ -8,20 +8,20 @@ use tokio::fs;
 use crate::Error;
 
 #[derive(Deserialize, Serialize)]
-pub enum Encoding {
+pub(crate) enum Encoding {
     Utf8,
     Eucjp,
 }
 
 #[derive(Deserialize, Serialize)]
-struct DictPath {
-    path: String,
-    encoding: Option<Encoding>,
+pub(crate) struct DictPath {
+    pub path: String,
+    pub encoding: Option<Encoding>,
 }
 #[derive(Deserialize, Serialize)]
-struct DictUrl {
-    url: String,
-    encoding: Option<Encoding>,
+pub(crate) struct DictUrl {
+    pub url: String,
+    pub encoding: Option<Encoding>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -32,9 +32,9 @@ enum Dict {
 }
 
 #[derive(Deserialize, Serialize)]
-pub struct Config {
-    google_ime_enable: bool,
-    dicts: Vec<Dict>,
+pub(crate) struct Config {
+    pub google_ime_enable: bool,
+    pub dicts: Vec<Dict>,
 }
 
 pub(crate) const DEFAULT_CONFIG: Config = Config {
