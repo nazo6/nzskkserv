@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::net::IpAddr;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -19,8 +18,6 @@ use crate::Encoding;
 
 use self::process::Process;
 
-type Dicts = Vec<HashMap<String, String>>;
-
 #[derive(Clone)]
 pub struct Server {
     address: IpAddr,
@@ -29,14 +26,20 @@ pub struct Server {
 }
 
 impl Server {
-    pub fn new(address: IpAddr, port: u16, dicts: Dicts, enable_google_ime: bool, encoding: Encoding) -> Self {
+    pub fn new(
+        address: IpAddr,
+        port: u16,
+        dicts: crate::Dicts,
+        enable_google_cgi: bool,
+        encoding: Encoding,
+    ) -> Self {
         Server {
             address,
             port,
             process: Arc::new(Mutex::new(Process {
                 dicts,
-                enable_google_ime,
-                encoding
+                enable_google_cgi,
+                encoding,
             })),
         }
     }

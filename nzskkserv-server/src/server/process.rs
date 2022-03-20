@@ -13,7 +13,7 @@ use crate::{server::{
 
 pub(crate) struct Process {
     pub dicts: Vec<HashMap<String, String>>,
-    pub enable_google_ime: bool,
+    pub enable_google_cgi: bool,
     pub encoding: crate::Encoding,
 }
 
@@ -63,7 +63,7 @@ impl Process {
             }
         }
 
-        if candidates.is_empty() && self.enable_google_ime {
+        if candidates.is_empty() && self.enable_google_cgi {
             if let Ok(candidate) = Self::fetch_google_cgi(str).await {
                 candidates.push(candidate);
             }

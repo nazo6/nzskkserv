@@ -1,12 +1,12 @@
-use super::{Server, Dicts};
+use super::Server;
 
 impl Server {
-    pub fn set_dicts(&self, dicts: Dicts) {
-        let mut config = self.process.blocking_lock();
+    pub async fn set_dicts(&self, dicts: crate::Dicts) {
+        let mut config = self.process.lock().await;
         config.dicts = dicts;
     }
-    pub fn set_google_ime(&self, enable: bool) {
-        let mut config = self.process.blocking_lock();
-        config.enable_google_ime = enable;
+    pub async fn set_google_cgi(&self, enable: bool) {
+        let mut config = self.process.lock().await;
+        config.enable_google_cgi = enable;
     }
 }
