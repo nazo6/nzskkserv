@@ -5,7 +5,7 @@ edition = "2018"
 
 [dependencies]
 clap = "3"
-tokio = { version = "1", features = ["full"]}
-nzskkserv-server = { path = "../nzskkserv-server" }
+tokio = { version = "1", features = ["full"] }
+nzskkserv-core = { path = "../nzskkserv-core" }
 simple_logger = { version = "2.1" }
 log = "0.4"

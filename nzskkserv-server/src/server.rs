@@ -59,11 +59,9 @@ impl Server {
                             let candidates = (*candidates_getter).as_ref().apply(str).await;
                             match candidates {
                                 Ok(candidates) => {
-                                    framed
-                                        .send(SkkOutcomingEvent::Convert(candidates))
-                                        .await
+                                    framed.send(SkkOutcomingEvent::Convert(candidates)).await
                                 }
-                                Err(e) => Err(Error::Unknown(e.to_string()))
+                                Err(e) => Err(Error::Unknown(e.to_string())),
                             }
                         }
                         SkkIncomingEvent::Server => framed.send(SkkOutcomingEvent::Server).await,
@@ -84,7 +82,7 @@ impl Server {
                 }
             }
         }
-        println!("socket closed");
+        info!("socket closed");
 
         Ok(())
     }
