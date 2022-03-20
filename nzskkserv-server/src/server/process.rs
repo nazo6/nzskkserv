@@ -64,20 +64,22 @@ impl Process {
         }
 
         if candidates.is_empty() && self.enable_google_ime {
-            if let Ok(candidate) = Self::fetch_google_cgi(&str).await {
+            if let Ok(candidate) = Self::fetch_google_cgi(str).await {
                 candidates.push(candidate);
             }
         }
 
         let mut candidates_str = "/".to_string();
         for mut candidate in candidates {
-            if candidate.len() < 1 {
+            if candidate.is_empty() {
                 continue;
             }
-            if &candidate[0..1] == "/" {
+            let tmp = candidate.clone();
+            let mut chars = tmp.chars();
+            if chars.next().unwrap() == '/' {
                 candidate.remove(0);
             }
-            if &candidate[candidate.len() - 1..] == "/" {
+            if chars.last().unwrap() == '/' {
                 candidate.pop();
             }
 
