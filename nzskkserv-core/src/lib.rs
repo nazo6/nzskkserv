@@ -54,7 +54,7 @@ impl Server {
 
         Ok(())
     }
-    pub async fn start(&mut self, address: IpAddr, port: u16) {
+    pub async fn start(&mut self, address: IpAddr, port: u16) -> Result<(), Error> {
         self.server = Some(nzskkserv_server::Server::new(address, port, move |str| async move{
             debug!("Starting convertion {}", &str);
             Candidates {
@@ -62,11 +62,14 @@ impl Server {
                 anotation: Some("a".to_string())
             }
         }));
-        self.server.as_ref().unwrap().start().await;
+        self.server.as_ref().unwrap().start().await.map_err(Error::Server)
     }
     pub async fn stop(&self) -> Result<(), Error> {
         match &self.server {
-            Some(server) => Ok(server.shutdown()),
+            Some(server) => {
+                server.shutdown();
+                Ok(())
+            },
             None => Err(Error::Other("Server is not started".to_string()))
         }
     }
