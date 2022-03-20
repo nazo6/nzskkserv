@@ -1,5 +1,6 @@
-use std::future::Future;
 use std::net::IpAddr;
+use std::sync::Arc;
+use std::{future::Future, pin::Pin};
 
 use futures::SinkExt;
 use log::{debug, info, warn};
@@ -7,28 +8,25 @@ use tokio::net::{TcpListener, TcpStream};
 use tokio_stream::StreamExt;
 use tokio_util::codec::Framed;
 
-mod codec;
-pub mod interface;
-
-use codec::SkkCodec;
-use interface::{SkkIncomingEvent, SkkOutcomingEvent};
-
-use crate::{error::Error, server::interface::Candidates};
-
-type CandidatesGetter = fn(String) -> dyn Future<Output = Candidates>;
+use crate::{
+    codec::SkkCodec,
+    error::Error,
+    handler::Handler,
+    interface::{Candidates, SkkIncomingEvent, SkkOutcomingEvent},
+};
 
 pub struct Server {
     address: IpAddr,
     port: u16,
-    candidates_getter: CandidatesGetter,
+    candidates_getter: Arc<Pin<Box<dyn Handler>>>,
 }
 
 impl Server {
-    pub fn new(address: IpAddr, port: u16, candidates_getter: CandidatesGetter) -> Server {
+    pub fn new<H: Handler>(address: IpAddr, port: u16, candidates_getter: H) -> Self {
         Server {
             address,
             port,
-            candidates_getter,
+            candidates_getter: Arc::new(Box::pin(candidates_getter)),
         }
     }
     pub async fn start(self) -> Result<(), Error> {
@@ -36,15 +34,20 @@ impl Server {
         loop {
             let (stream, socket) = listener.accept().await?;
 
+            let getter = Arc::clone(&self.candidates_getter);
             tokio::spawn(async move {
                 info!("Socket connected: {}:{}", socket.ip(), socket.port());
-                Self::process(stream, self.candidates_getter).await
+                Self::process(stream, getter).await
             });
         }
     }
-    async fn process(stream: TcpStream, candidates_getter: CandidatesGetter) -> Result<(), Error> {
+    async fn process(
+        stream: TcpStream,
+        candidates_getter: Arc<Pin<Box<dyn Handler>>>,
+    ) -> Result<(), Error> {
         let mut framed = Framed::new(stream, SkkCodec::new(crate::Encoding::Utf8));
         while let Some(message) = framed.next().await {
+            let candidates_getter = Arc::clone(&candidates_getter);
             match message {
                 Ok(data) => {
                     info!("Data incoming: {:?}", data);
@@ -53,8 +56,15 @@ impl Server {
                             break;
                         }
                         SkkIncomingEvent::Convert(str) => {
-                            let candidates = candidates_getter(str);
-                            framed.send(SkkOutcomingEvent::Convert()).await
+                            let candidates = (*candidates_getter).as_ref().apply(str).await;
+                            match candidates {
+                                Ok(candidates) => {
+                                    framed
+                                        .send(SkkOutcomingEvent::Convert(candidates))
+                                        .await
+                                }
+                                Err(e) => Err(Error::Unknown(e.to_string()))
+                            }
                         }
                         SkkIncomingEvent::Server => framed.send(SkkOutcomingEvent::Server).await,
                         SkkIncomingEvent::Version => framed.send(SkkOutcomingEvent::Version).await,

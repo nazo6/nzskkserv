@@ -11,4 +11,6 @@ pub enum Error {
     Encoding(Bytes),
     #[error(transparent)]
     IOError(#[from] std::io::Error),
+    #[error("Unknown error {0}")]
+    Unknown(String),
 }
