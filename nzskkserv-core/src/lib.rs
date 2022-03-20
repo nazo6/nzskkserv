@@ -1,6 +1,8 @@
 use config::Config;
 use directories::ProjectDirs;
-use std::{cell::RefCell, collections::HashMap};
+use log::debug;
+use nzskkserv_server::Candidates;
+use std::{cell::RefCell, collections::HashMap, net::IpAddr, future::Future};
 use thiserror::Error;
 use tokio::fs;
 
@@ -16,18 +18,21 @@ struct Dict {
 pub struct Server {
     dicts: RefCell<Vec<Dict>>,
     config: RefCell<Config>,
+    server: Option<nzskkserv_server::Server>,
 }
 
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("Server error: {0}")]
-    ServerError(nzskkserv_server::error::Error),
+    Server(nzskkserv_server::error::Error),
     #[error("Failed to read config: {0}")]
-    ConfigReadError(String),
+    ConfigRead(String),
     #[error("Failed to write config: {0}")]
-    ConfigWriteError(String),
+    ConfigWrite(String),
     #[error(transparent)]
-    IOError(#[from] std::io::Error),
+    IO(#[from] std::io::Error),
+    #[error("Error occurred: {0}")]
+    Other(String),
 }
 
 impl Default for Server {
@@ -35,6 +40,7 @@ impl Default for Server {
         Server {
             dicts: RefCell::new(Vec::new()),
             config: RefCell::new(config::DEFAULT_CONFIG),
+            server: None
         }
     }
 }
@@ -47,5 +53,21 @@ impl Server {
         *config = loaded_config;
 
         Ok(())
+    }
+    pub async fn start(&mut self, address: IpAddr, port: u16) {
+        self.server = Some(nzskkserv_server::Server::new(address, port, move |str| async move{
+            debug!("Starting convertion {}", &str);
+            Candidates {
+                content: vec!["a".to_string()],
+                anotation: Some("a".to_string())
+            }
+        }));
+        self.server.as_ref().unwrap().start().await;
+    }
+    pub async fn stop(&self) -> Result<(), Error> {
+        match &self.server {
+            Some(server) => Ok(server.shutdown()),
+            None => Err(Error::Other("Server is not started".to_string()))
+        }
     }
 }

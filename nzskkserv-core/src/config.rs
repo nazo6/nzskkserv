@@ -47,7 +47,7 @@ pub(crate) async fn load_config(config_dir: Option<&str>) -> Result<Config, Erro
         Some(dir) => PathBuf::from(dir),
         None => {
             let project_dirs = ProjectDirs::from("", "", "nzskkserv").ok_or_else(|| {
-                Error::ConfigReadError("Could not find config directory".to_string())
+                Error::ConfigRead("Could not find config directory".to_string())
             })?;
             project_dirs.config_dir().to_path_buf()
         }
@@ -55,9 +55,9 @@ pub(crate) async fn load_config(config_dir: Option<&str>) -> Result<Config, Erro
     config_path.push("config.toml");
     let config_file = tokio::fs::read_to_string(&config_path)
         .await
-        .map_err(|e| Error::IOError(e))?;
+        .map_err(|e| Error::IO(e))?;
     let config: Config =
-        toml::from_str(&config_file).map_err(|e| Error::ConfigReadError(e.to_string()))?;
+        toml::from_str(&config_file).map_err(|e| Error::ConfigRead(e.to_string()))?;
     Ok(config)
 }
 
@@ -66,14 +66,14 @@ pub(crate) async fn write_config(config: &Config, config_dir: Option<&str>) -> R
         Some(dir) => PathBuf::from(dir),
         None => {
             let project_dirs = ProjectDirs::from("", "", "nzskkserv").ok_or(
-                Error::ConfigReadError("Could not find config directory".to_string()),
+                Error::ConfigRead("Could not find config directory".to_string()),
             )?;
             project_dirs.config_dir().to_path_buf()
         }
     };
     config_path.push("config.toml");
 
-    let project_dirs = ProjectDirs::from("", "", "nzskkserv").ok_or(Error::ConfigWriteError(
+    let project_dirs = ProjectDirs::from("", "", "nzskkserv").ok_or(Error::ConfigWrite(
         "Could not find config directory".to_string(),
     ))?;
     let mut config_file_path = project_dirs.config_dir().to_path_buf();
@@ -81,10 +81,10 @@ pub(crate) async fn write_config(config: &Config, config_dir: Option<&str>) -> R
 
     fs::create_dir_all(&config_file_path)
         .await
-        .map_err(|e| Error::IOError(e))?;
+        .map_err(|e| Error::IO(e))?;
 
     let config_text =
-        toml::to_string(&config).map_err(|e| Error::ConfigWriteError(e.to_string()))?;
+        toml::to_string(&config).map_err(|e| Error::ConfigWrite(e.to_string()))?;
     fs::write(config_file_path, config_text);
 
     Ok(())

@@ -3,10 +3,6 @@ name = "nzskkserv-core"
 version = "0.1.0"
 edition = "2018"
 
-[lib]
-name = "nzskkserv"
-path = "src/lib.rs"
-
 [dependencies]
 nzskkserv-server = { path = "../nzskkserv-server" }
 tokio = { version = "1", features = ["fs"] }
