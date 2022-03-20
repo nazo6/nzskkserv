@@ -9,8 +9,12 @@ pub enum Error {
     Decoding(Bytes),
     #[error("Error occurred while encoding")]
     Encoding(Bytes),
+    #[error("Error occurred while parsing google cgi data")]
+    GoogleCgiParse,
     #[error(transparent)]
     Io(#[from] std::io::Error),
+    #[error(transparent)]
+    Request(#[from] reqwest::Error),
     #[error("Unknown error {0}")]
     Unknown(String),
 }

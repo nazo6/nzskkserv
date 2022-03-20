@@ -6,19 +6,20 @@ use tokio::net::TcpStream;
 use tokio_stream::StreamExt;
 use tokio_util::codec::Framed;
 
-use crate::server::{
+use crate::{server::{
     codec::SkkCodec,
-    interface::{Candidates, SkkIncomingEvent, SkkOutcomingEvent},
-};
+    interface::{SkkIncomingEvent, SkkOutcomingEvent},
+}, Error};
 
 pub(crate) struct Process {
     pub dicts: Vec<HashMap<String, String>>,
     pub enable_google_ime: bool,
+    pub encoding: crate::Encoding,
 }
 
 impl Process {
     pub async fn process(&self, stream: TcpStream) -> Result<(), super::error::Error> {
-        let mut framed = Framed::new(stream, SkkCodec::new(crate::Encoding::Utf8));
+        let mut framed = Framed::new(stream, SkkCodec::new(&self.encoding));
         while let Some(message) = framed.next().await {
             match message {
                 Ok(data) => {
@@ -28,7 +29,7 @@ impl Process {
                             break;
                         }
                         SkkIncomingEvent::Convert(str) => {
-                            let candidates = self.convert(str).await;
+                            let candidates = self.convert(&str).await;
                             framed.send(SkkOutcomingEvent::Convert(candidates)).await
                         }
                         SkkIncomingEvent::Server => framed.send(SkkOutcomingEvent::Server).await,
@@ -53,11 +54,61 @@ impl Process {
 
         Ok(())
     }
-    async fn convert(&self, str: String) -> Candidates {
-        debug!("{:?}", self.dicts.len());
-        Candidates {
-            content: vec!["a".to_string()],
-            anotation: Some("nzs".to_string()),
+    async fn convert(&self, str: &str) -> Option<String> {
+        let mut candidates: Vec<String> = Vec::new();
+        for dict in &self.dicts {
+            let value = dict.get(str);
+            if let Some(value) = value {
+                candidates.push(value.to_string())
+            }
         }
+
+        if candidates.is_empty() && self.enable_google_ime {
+            if let Ok(candidate) = Self::fetch_google_cgi(&str).await {
+                candidates.push(candidate);
+            }
+        }
+
+        let mut candidates_str = "/".to_string();
+        for mut candidate in candidates {
+            if candidate.len() < 1 {
+                continue;
+            }
+            if &candidate[0..1] == "/" {
+                candidate.remove(0);
+            }
+            if &candidate[candidate.len() - 1..] == "/" {
+                candidate.pop();
+            }
+
+            candidates_str.push_str(&candidate);
+            candidates_str.push('/')
+        }
+
+        if candidates_str.is_empty() {
+            None
+        } else {
+            Some(candidates_str)
+        }
+    }
+    async fn fetch_google_cgi(query: &str) -> Result<String, Error> {
+        info!("Querying to google cgi server");
+        type GoogleCgiResponse = Vec<(String, Vec<String>)>;
+        let mut url = "http://www.google.com/transliterate?langpair=ja-Hira|ja&text=".to_string();
+        url.push_str(&urlencoding::encode(query));
+        url.push(',');
+        let result = reqwest::get(url).await?.json::<GoogleCgiResponse>().await?;
+
+        debug!("Got response from google cgi server: {:?}", result);
+
+        let candidates = &result.get(0).ok_or(Error::GoogleCgiParse)?.1;
+
+        let mut candidate_str = "/".to_string();
+        candidates.iter().for_each(|candidate| {
+            candidate_str.push_str(candidate);
+            candidate_str.push('/')
+        });
+
+        Ok(candidate_str)
     }
 }

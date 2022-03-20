@@ -17,14 +17,8 @@ async fn main() {
         info!("Server exited")
     };
 
-    let wait_3_secs = || async {
-        tokio::time::sleep(Duration::from_secs(5)).await;
-        info!("3secs");
-        server.stop().await;
-    };
 
     tokio::join! {
         start_server(),
-        wait_3_secs()
     };
 }

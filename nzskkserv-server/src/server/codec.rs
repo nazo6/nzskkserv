@@ -13,8 +13,10 @@ pub(crate) struct SkkCodec {
 }
 
 impl SkkCodec {
-    pub fn new(encoding: Encoding) -> SkkCodec {
-        SkkCodec { encoding }
+    pub fn new(encoding: &Encoding) -> SkkCodec {
+        SkkCodec {
+            encoding: encoding.clone(),
+        }
     }
 }
 
@@ -64,26 +66,16 @@ impl Encoder<SkkOutcomingEvent> for SkkCodec {
 
     fn encode(&mut self, event: SkkOutcomingEvent, dst: &mut BytesMut) -> Result<(), Self::Error> {
         let text = match event {
-            SkkOutcomingEvent::Convert(candidates) => {
-                let mut str = "1".to_string();
-                let annotation = match candidates.anotation {
-                    Some(annotation) => {
-                        let mut str = ";".to_string();
-                        str.push_str(&annotation);
-                        str
-                    }
-                    None => "".to_string(),
-                };
-                candidates.content.iter().for_each(|candidate| {
-                    str.push('/');
-                    str.push_str(candidate);
-                    str.push_str(&annotation);
-                });
-                str.push('/');
-                str.push('\n');
+            SkkOutcomingEvent::Convert(candidates) => match candidates {
+                Some(candidates) => {
+                    let mut str = "1".to_string();
+                    str.push_str(&candidates);
+                    str.push('\n');
 
-                str
-            }
+                    str
+                }
+                None => "4\n".to_string(),
+            },
             SkkOutcomingEvent::Server => "4\n".to_string(),
             SkkOutcomingEvent::Version => "nzskkserv-server/0.1.0 ".to_string(),
             SkkOutcomingEvent::Hostname => " ".to_string(),

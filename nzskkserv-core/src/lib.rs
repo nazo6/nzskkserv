@@ -1,7 +1,4 @@
-use std::{
-    collections::HashMap,
-    net::{IpAddr, Ipv4Addr}, cell::RefCell,
-};
+use std::{cell::RefCell, collections::HashMap, net::IpAddr};
 
 use log::info;
 use nzskkserv_server::server::Server;
@@ -22,9 +19,12 @@ impl Manager {
 
         let dicts = vec![dict1];
 
-        let server = Server::new(address, port, dicts, false);
+        let server = Server::new(address, port, dicts, true, nzskkserv_server::Encoding::Utf8);
 
-        Manager { server, kill_sender: RefCell::new(None) }
+        Manager {
+            server,
+            kill_sender: RefCell::new(None),
+        }
     }
     pub async fn start(&self) {
         let (sender, reciever) = broadcast::channel(1);
@@ -37,17 +37,11 @@ impl Manager {
     pub async fn stop(&self) -> Result<(), Error> {
         let kill_sender = self.kill_sender.borrow();
         match &*kill_sender {
-            Some(sender) => {
-                match sender.send(()) {
-                    Ok(_) => {
-                        Ok(())
-                    }
-                    Err(e) => {
-                        Err(Error::Other(e.to_string()))
-                    }
-                }
-            }
-            None => Err(Error::Other("Server is not started".to_string()))
+            Some(sender) => match sender.send(()) {
+                Ok(_) => Ok(()),
+                Err(e) => Err(Error::Other(e.to_string())),
+            },
+            None => Err(Error::Other("Server is not started".to_string())),
         }
     }
 }

@@ -3,9 +3,9 @@ use std::net::IpAddr;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-use log::{debug, info, warn};
+use log::info;
 use tokio::net::TcpListener;
-use tokio::sync::broadcast::{self, Receiver};
+use tokio::sync::broadcast::Receiver;
 
 mod codec;
 mod dict;
@@ -14,6 +14,8 @@ mod interface;
 mod process;
 
 use error::Error;
+
+use crate::Encoding;
 
 use self::process::Process;
 
@@ -27,13 +29,14 @@ pub struct Server {
 }
 
 impl Server {
-    pub fn new(address: IpAddr, port: u16, dicts: Dicts, enable_google_ime: bool) -> Self {
+    pub fn new(address: IpAddr, port: u16, dicts: Dicts, enable_google_ime: bool, encoding: Encoding) -> Self {
         Server {
             address,
             port,
             process: Arc::new(Mutex::new(Process {
                 dicts,
                 enable_google_ime,
+                encoding
             })),
         }
     }
