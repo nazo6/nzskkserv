@@ -13,7 +13,7 @@ repository = "https://github.com/nazo6/nzskkserv"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
-nzskkserv-core = { path = "../nzskkserv-core" }
+nzskkserv-core = { path = "../nzskkserv-core", version = "0.1" }
 simple_logger = { version = "2.1" }
 log = "0.4"
 anyhow = "1"
