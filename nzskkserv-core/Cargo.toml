@@ -13,7 +13,7 @@ homepage = "https://crates.io/crates/nzskkserv-core"
 repository = "https://github.com/nazo6/nzskkserv"
 
 [dependencies]
-tokio = { version = "1", features = ["net", "rt", "io-util"] }
+tokio = { version = "1", features = ["net", "rt", "io-util", "macros"] }
 tokio-util = { version = "0.7", features = ["full"] }
 tokio-stream = "0.1"
 bytes = "1"
