@@ -1,30 +1,63 @@
-use std::{
-    net::{IpAddr, Ipv4Addr},
-    time::Duration,
-};
+use anyhow::Error;
+use std::net::{IpAddr, Ipv4Addr};
 
-use clap::{Arg, Command};
-use log::info;
-use nzskkserv_core::{Dict, config::{DictPath, Encoding}};
+pub mod config;
+mod dict_utils;
+
+use config::Config;
+use log::{info, debug};
+
+use crate::config::write_config;
 
 const LOCALHOST: IpAddr = IpAddr::V4(Ipv4Addr::LOCALHOST);
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Error> {
     simple_logger::init_with_level(log::Level::Debug).unwrap();
-    let server = &nzskkserv_core::manager::Manager::new(LOCALHOST, 2000);
-    server.load_config(None).await;
-    server.set_dicts(vec![Dict::DictPath(DictPath {
-        path: "/home/nazo/.config/nzskkserv/SKK-JISYO.ML".to_string(),
-        encoding: Some(Encoding::Eucjp)
-    })]).await;
-    server.set_google_cgi(true).await;
+
+    let config = load_config().await;
+
+    let encoding = match config.server_encoding {
+        config::Encoding::Utf8 => nzskkserv_core::Encoding::Utf8,
+        config::Encoding::Eucjp => nzskkserv_core::Encoding::Eucjp,
+    };
+    let dicts = load_dicts(config.dicts).await;
+
+    let server =
+        nzskkserv_core::Server::new(LOCALHOST, config.port.unwrap_or(1178), dicts, config.enable_google_cgi, encoding);
     let start_server = || async {
-        server.start().await;
+        let _ = server.start().await;
         info!("Server exited")
     };
 
     tokio::join! {
         start_server(),
     };
+
+    Ok(())
+}
+
+async fn load_config() -> Config {
+    match config::read_config().await {
+        Ok(data) => data,
+        Err(e) => {
+            debug!("Config load error. Falling back.: {:?}", e);
+            write_config(&config::DEFAULT_CONFIG).await.unwrap();
+            config::DEFAULT_CONFIG
+        }
+    }
+}
+
+async fn load_dicts(dicts: Vec<config::Dict>) -> Vec<nzskkserv_core::Dict> {
+    let mut dicts_data: Vec<nzskkserv_core::Dict> = Vec::new();
+    for dict in dicts {
+        debug!("Loading dict: {:?}", dict);
+        let dict_data = dict_utils::get_dict_data(dict).await;
+        match dict_data {
+            Ok(dict_data) => dicts_data.push(dict_data),
+            Err(e) => info!("Dict load error: {:?}", e)
+        }
+    }
+    info!("Loaded {} dicts", dicts_data.len());
+    dicts_data
 }

@@ -1,8 +1,11 @@
-pub mod manager;
-pub mod config;
-pub mod error;
-pub use error::Error;
-mod dict_utils;
+pub mod server;
+pub use server::error::Error;
+pub use server::Server;
 
-pub use config::Dict;
-use nzskkserv_server::Dict as DictData;
+#[derive(Clone)]
+pub enum Encoding {
+    Utf8,
+    Eucjp,
+}
+
+pub type Dict = std::collections::HashMap<String, String>;

@@ -15,6 +15,6 @@ pub enum Error {
     Io(#[from] std::io::Error),
     #[error(transparent)]
     Request(#[from] reqwest::Error),
-    #[error("Unknown error {0}")]
-    Unknown(String),
+    #[error("Other error {0}")]
+    Other(String),
 }

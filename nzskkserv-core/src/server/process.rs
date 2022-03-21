@@ -6,10 +6,13 @@ use tokio::net::TcpStream;
 use tokio_stream::StreamExt;
 use tokio_util::codec::Framed;
 
-use crate::{server::{
-    codec::SkkCodec,
-    interface::{SkkIncomingEvent, SkkOutcomingEvent},
-}, Error};
+use crate::{
+    server::{
+        codec::SkkCodec,
+        interface::{SkkIncomingEvent, SkkOutcomingEvent},
+    },
+    Error,
+};
 
 pub(crate) struct Process {
     pub dicts: Vec<HashMap<String, String>>,
@@ -39,7 +42,7 @@ impl Process {
                         }
                     };
                     match result {
-                        Ok(()) => debug!("Proccessed incoming data"),
+                        Ok(()) => {}
                         Err(err) => {
                             warn!("Error occurred while processing incoming data: {:?}", err)
                         }
@@ -50,7 +53,7 @@ impl Process {
                 }
             }
         }
-        info!("socket closed");
+        info!("Socket closed");
 
         Ok(())
     }
