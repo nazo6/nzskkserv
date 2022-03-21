@@ -8,7 +8,7 @@ authors = ["nazo6"]
 license = "MIT"
 
 readme = "../README.md"
-homepage = "https://crates.io/crates/nzskkserv-core"
+homepage = "https://crates.io/crates/nzskkserv-cli"
 repository = "https://github.com/nazo6/nzskkserv"
 
 [dependencies]
