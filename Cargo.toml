@@ -1,2 +1,2 @@
 [workspace]
-members = ["nzskkserv-core", "nzskkserv-cli"]
+members = ["nzskkserv-core", "nzskkserv-cli", "nzskkserv-gui"]

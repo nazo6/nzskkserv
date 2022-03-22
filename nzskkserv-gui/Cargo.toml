@@ -1,0 +1,30 @@
+[package]
+name = "nzskkserv-gui"
+version = "0.1.0"
+edition = "2021"
+
+description = "A skkserv implemention."
+authors = ["nazo6"]
+license = "MIT"
+
+readme = "README.md"
+homepage = "https://crates.io/crates/nzskkserv-gui"
+repository = "https://github.com/nazo6/nzskkserv"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+nzskkserv-core = { path = "../nzskkserv-core", version = "0.1" }
+simple_logger = { version = "2.1" }
+log = "0.4"
+anyhow = "1"
+directories = "4"
+serde = { version = "1", features = ["derive"] }
+toml = "0.5"
+encoding_rs = "0.8"
+sanitize-filename = "0.3"
+reqwest = "0.11"
+native-windows-gui = "1.0.12"
+native-windows-derive = "1.0.3"
+
+[build-dependencies]
+embed-resource = "1.7"
