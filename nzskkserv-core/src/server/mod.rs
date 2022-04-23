@@ -66,27 +66,14 @@ impl Server {
         loop {
             let (stream, socket) = listener.accept().await?;
 
-            let mut config_subscriber = self.configurator.subscribe();
+            let config_subscriber = self.configurator.subscribe();
 
             tokio::spawn(async move {
                 info!("Socket connected: {}:{}", socket.ip(), socket.port());
 
-                let mut conf = config_subscriber.borrow().clone();
+                let conf = config_subscriber.borrow().clone();
 
-                let p = process(stream, conf);
-                tokio::pin!(p);
-
-                loop {
-                    tokio::select! {
-                        _ = config_subscriber.changed() => {
-                            conf = config_subscriber.borrow().clone();
-                        }
-                        _ = &mut p => {
-                            // The operation completed!
-                            return
-                        }
-                    }
-                }
+                process(stream, conf).await
             });
         }
     }
