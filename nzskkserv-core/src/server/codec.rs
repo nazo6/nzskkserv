@@ -49,7 +49,7 @@ impl Decoder for SkkCodec {
                     let content: Option<&str>;
                     if str.ends_with(" \n") {
                         content = str.get(1..str.len() - 2);
-                    } else if str.ends_with(" \n") {
+                    } else if str.ends_with(" ") {
                         content = str.get(1..str.len() - 1);
                     } else {
                         content = None;
@@ -87,7 +87,7 @@ impl Encoder<SkkOutcomingEvent> for SkkCodec {
             SkkOutcomingEvent::Version => "nzskkserv-server/0.1.0 ".to_string(),
             SkkOutcomingEvent::Hostname => " ".to_string(),
         };
-        info!("Responsing: {:?}", &text);
+        info!("Respond: {:?}", &text);
         let (bytes, _, _) = match self.encoding {
             Encoding::Utf8 => UTF_8.encode(&text),
             Encoding::Eucjp => EUC_JP.encode(&text),
