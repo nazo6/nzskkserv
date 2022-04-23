@@ -46,7 +46,14 @@ impl Decoder for SkkCodec {
             match command {
                 '0' => Ok(Some(SkkIncomingEvent::Disconnect)),
                 '1' => {
-                    let content = str.get(1..str.len() - 1);
+                    let content: Option<&str>;
+                    if str.ends_with(" \n") {
+                        content = str.get(1..str.len() - 2);
+                    } else if str.ends_with(" \n") {
+                        content = str.get(1..str.len() - 1);
+                    } else {
+                        content = None;
+                    }
                     match content {
                         Some(content) => Ok(Some(SkkIncomingEvent::Convert(content.to_string()))),
                         None => Err(Error::InvalidIncomingCommand(str.to_string())),
