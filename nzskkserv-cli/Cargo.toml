@@ -1,6 +1,6 @@
 [package]
 name = "nzskkserv-cli"
-version = ""
+version = "0.1.2"
 edition = "2021"
 
 description = "A skkserv implemention."

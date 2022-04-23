@@ -84,7 +84,7 @@ impl Encoder<SkkOutcomingEvent> for SkkCodec {
                 None => "4\n".to_string(),
             },
             SkkOutcomingEvent::Server => "4\n".to_string(),
-            SkkOutcomingEvent::Version => "nzskkserv/ ".to_string(),
+            SkkOutcomingEvent::Version => format!("nzskkserv/{} ", env!("CARGO_PKG_VERSION")),
             SkkOutcomingEvent::Hostname => " ".to_string(),
         };
         info!("Response: {:?}", &text);
