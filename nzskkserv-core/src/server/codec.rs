@@ -46,7 +46,14 @@ impl Decoder for SkkCodec {
             match command {
                 '0' => Ok(Some(SkkIncomingEvent::Disconnect)),
                 '1' => {
-                    let content = str.get(1..str.len() - 1);
+                    let content: Option<&str>;
+                    if str.ends_with(" \n") {
+                        content = str.get(1..str.len() - 2);
+                    } else if str.ends_with(" ") {
+                        content = str.get(1..str.len() - 1);
+                    } else {
+                        content = None;
+                    }
                     match content {
                         Some(content) => Ok(Some(SkkIncomingEvent::Convert(content.to_string()))),
                         None => Err(Error::InvalidIncomingCommand(str.to_string())),
@@ -77,10 +84,10 @@ impl Encoder<SkkOutcomingEvent> for SkkCodec {
                 None => "4\n".to_string(),
             },
             SkkOutcomingEvent::Server => "4\n".to_string(),
-            SkkOutcomingEvent::Version => "nzskkserv-server/0.1.0 ".to_string(),
+            SkkOutcomingEvent::Version => format!("nzskkserv/{} ", env!("CARGO_PKG_VERSION")),
             SkkOutcomingEvent::Hostname => " ".to_string(),
         };
-        info!("Responsing: {:?}", &text);
+        info!("Response: {:?}", &text);
         let (bytes, _, _) = match self.encoding {
             Encoding::Utf8 => UTF_8.encode(&text),
             Encoding::Eucjp => EUC_JP.encode(&text),

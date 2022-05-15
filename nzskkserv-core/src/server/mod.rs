@@ -1,12 +1,13 @@
 //! SKKサーバ本体
 
+use std::borrow::Borrow;
 use std::net::IpAddr;
 use std::sync::Arc;
-use tokio::sync::Mutex;
 
 use log::info;
 use tokio::net::TcpListener;
 use tokio::sync::broadcast;
+use tokio::sync::watch;
 
 mod codec;
 pub mod error;
@@ -17,13 +18,12 @@ use error::Error;
 
 use crate::Encoding;
 
-use self::process::Process;
+use self::process::{process, Configuration};
 
-#[derive(Clone)]
 pub struct Server {
     address: IpAddr,
     port: u16,
-    process: Arc<Mutex<Process>>,
+    configurator: watch::Sender<Configuration>,
     killer: broadcast::Sender<()>,
 }
 
@@ -40,14 +40,15 @@ impl Server {
         encoding: Encoding,
     ) -> Self {
         let (killer, _) = broadcast::channel(1);
+        let (configurator, _) = watch::channel(Configuration {
+            dicts,
+            enable_google_cgi,
+            encoding,
+        });
         Server {
             address,
             port,
-            process: Arc::new(Mutex::new(Process {
-                dicts,
-                enable_google_cgi,
-                encoding,
-            })),
+            configurator,
             killer,
         }
     }
@@ -64,12 +65,15 @@ impl Server {
         let listener = TcpListener::bind((self.address, self.port)).await?;
         loop {
             let (stream, socket) = listener.accept().await?;
-            let process = Arc::clone(&self.process);
+
+            let config_subscriber = self.configurator.subscribe();
 
             tokio::spawn(async move {
                 info!("Socket connected: {}:{}", socket.ip(), socket.port());
-                let process = process.lock().await;
-                let _ = process.process(stream).await;
+
+                let conf = config_subscriber.borrow().clone();
+
+                process(stream, conf).await
             });
         }
     }
@@ -80,12 +84,17 @@ impl Server {
             .map_err(|_| Error::Other("Failed to send kill signal.".to_string()))
     }
     /// 辞書をサーバーにセットします。上書きされます。
-    pub async fn set_dicts(&self, dicts: Vec<crate::Dict>) {
-        let mut config = self.process.lock().await;
-        config.dicts = dicts;
+    pub async fn set_dicts(&self, dicts: Vec<crate::Dict>) -> Option<()> {
+        let crr = (*self.configurator.borrow()).clone();
+        self.configurator.send(Configuration { dicts, ..crr }).ok()
     }
-    pub async fn set_google_cgi(&self, enable: bool) {
-        let mut config = self.process.lock().await;
-        config.enable_google_cgi = enable;
+    pub async fn set_google_cgi(&self, enable: bool) -> Option<()> {
+        let crr = (*self.configurator.borrow()).clone();
+        self.configurator
+            .send(Configuration {
+                enable_google_cgi: enable,
+                ..crr
+            })
+            .ok()
     }
 }
