@@ -1,0 +1,12 @@
+[tasks.gen]
+description = "Coegen from rust"
+command = "flutter_rust_bridge_codegen"
+args = [ "-r", "native/src/api.rs", "-d", "lib/bridge_generated.dart" ]
+
+[tasks.runf]
+description = "Run app"
+script = '''flutter run -d windows'''
+
+[tasks.run]
+description = "Run app"
+dependencies = ["gen", "runf"]
