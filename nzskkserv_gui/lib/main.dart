@@ -27,8 +27,9 @@ class HomePage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final t = useState("");
+    final message = useState("");
     final paneIndex = useState(0);
+    final serverStarted = useState(false);
 
     return NavigationView(
       appBar: const NavigationAppBar(
@@ -53,13 +54,21 @@ class HomePage extends HookConsumerWidget {
             child: Column(
               children: [
                 Button(
-                  child: const Text("Get"),
+                  child: Text(serverStarted.value ? "Stop" : "Start"),
                   onPressed: () async {
-                    final a = await api.greet();
-                    t.value = a;
+                    if (serverStarted.value) {
+                      await api.stop();
+                      serverStarted.value = false;
+                    } else {
+                      final stream = api.start();
+                      serverStarted.value = true;
+                      stream.listen((event) {
+                        message.value = event;
+                      });
+                    }
                   },
                 ),
-                Text(t.value)
+                Text(message.value)
               ],
             ),
           ),

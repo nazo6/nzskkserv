@@ -1,8 +1,6 @@
 //! SKKサーバ本体
 
-use std::borrow::Borrow;
 use std::net::IpAddr;
-use std::sync::Arc;
 
 use log::info;
 use tokio::net::TcpListener;
@@ -11,7 +9,7 @@ use tokio::sync::watch;
 
 mod codec;
 pub mod error;
-mod interface;
+pub mod interface;
 mod process;
 
 use error::Error;

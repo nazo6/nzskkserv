@@ -3,11 +3,11 @@ use std::collections::HashMap;
 use futures::SinkExt;
 use log::{debug, info, warn};
 use tokio::net::TcpStream;
-use tokio::sync::watch::Receiver;
 use tokio_stream::StreamExt;
 use tokio_util::codec::Framed;
 
 use crate::{
+    log::{log, LogEntry, LogEvent},
     server::{
         codec::SkkCodec,
         interface::{SkkIncomingEvent, SkkOutcomingEvent},
@@ -30,19 +30,20 @@ pub(crate) async fn process(
     while let Some(message) = framed.next().await {
         match message {
             Ok(data) => {
-                info!("Data incoming: {:?}", data);
                 let result = match data {
                     SkkIncomingEvent::Disconnect => {
                         break;
                     }
                     SkkIncomingEvent::Convert(str) => {
                         let candidates = convert(&str, &config).await;
+
                         framed.send(SkkOutcomingEvent::Convert(candidates)).await
                     }
                     SkkIncomingEvent::Server => framed.send(SkkOutcomingEvent::Server).await,
                     SkkIncomingEvent::Version => framed.send(SkkOutcomingEvent::Version).await,
                     SkkIncomingEvent::Hostname => framed.send(SkkOutcomingEvent::Hostname).await,
                 };
+
                 match result {
                     Ok(()) => {}
                     Err(err) => {

@@ -29,6 +29,30 @@ pub extern "C" fn wire_greet(port_: i64) {
     )
 }
 
+#[no_mangle]
+pub extern "C" fn wire_start(port_: i64) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+        WrapInfo {
+            debug_name: "start",
+            port: Some(port_),
+            mode: FfiCallMode::Stream,
+        },
+        move || move |task_callback| Ok(start(task_callback.stream_sink())),
+    )
+}
+
+#[no_mangle]
+pub extern "C" fn wire_stop(port_: i64) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+        WrapInfo {
+            debug_name: "stop",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || move |task_callback| Ok(stop()),
+    )
+}
+
 // Section: wire structs
 
 // Section: wrapper structs

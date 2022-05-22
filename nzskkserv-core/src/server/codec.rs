@@ -4,7 +4,10 @@ use log::info;
 use tokio_util::codec::{Decoder, Encoder};
 
 use super::error::Error;
-use crate::Encoding;
+use crate::{
+    log::{log, LogEntry, LogEvent},
+    Encoding,
+};
 
 use super::interface::{SkkIncomingEvent, SkkOutcomingEvent};
 
@@ -43,7 +46,7 @@ impl Decoder for SkkCodec {
                 Some(command) => command,
                 None => return Err(Error::InvalidIncomingCommand(str)),
             };
-            match command {
+            let data = match command {
                 '0' => Ok(Some(SkkIncomingEvent::Disconnect)),
                 '1' => {
                     let content: Option<&str>;
@@ -63,7 +66,18 @@ impl Decoder for SkkCodec {
                 '3' => Ok(Some(SkkIncomingEvent::Hostname)),
                 '4' => Ok(Some(SkkIncomingEvent::Server)),
                 _ => Err(Error::InvalidIncomingCommand(str)),
-            }
+            };
+
+            log(LogEntry {
+                event: match &data {
+                    Ok(Some(event)) => LogEvent::Incoming(event.clone()),
+                    Ok(None) => unreachable!(),
+                    Err(err) => LogEvent::Message("error".to_string()),
+                },
+                level: 0,
+            });
+
+            data
         }
     }
 }
@@ -72,6 +86,11 @@ impl Encoder<SkkOutcomingEvent> for SkkCodec {
     type Error = Error;
 
     fn encode(&mut self, event: SkkOutcomingEvent, dst: &mut BytesMut) -> Result<(), Self::Error> {
+        log(LogEntry {
+            event: LogEvent::Outcoming(event.clone()),
+            level: 0,
+        });
+
         let text = match event {
             SkkOutcomingEvent::Convert(candidates) => match candidates {
                 Some(candidates) => {
@@ -88,6 +107,7 @@ impl Encoder<SkkOutcomingEvent> for SkkCodec {
             SkkOutcomingEvent::Hostname => " ".to_string(),
         };
         info!("Response: {:?}", &text);
+
         let (bytes, _, _) = match self.encoding {
             Encoding::Utf8 => UTF_8.encode(&text),
             Encoding::Eucjp => EUC_JP.encode(&text),

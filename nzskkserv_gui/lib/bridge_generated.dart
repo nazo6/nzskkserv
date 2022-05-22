@@ -13,6 +13,10 @@ import 'dart:ffi' as ffi;
 
 abstract class Native {
   Future<String> greet({dynamic hint});
+
+  Stream<String> start({dynamic hint});
+
+  Future<void> stop({dynamic hint});
 }
 
 class NativeImpl extends FlutterRustBridgeBase<NativeWire> implements Native {
@@ -26,6 +30,28 @@ class NativeImpl extends FlutterRustBridgeBase<NativeWire> implements Native {
         parseSuccessData: _wire2api_String,
         constMeta: const FlutterRustBridgeTaskConstMeta(
           debugName: "greet",
+          argNames: [],
+        ),
+        argValues: [],
+        hint: hint,
+      ));
+
+  Stream<String> start({dynamic hint}) => executeStream(FlutterRustBridgeTask(
+        callFfi: (port_) => inner.wire_start(port_),
+        parseSuccessData: _wire2api_String,
+        constMeta: const FlutterRustBridgeTaskConstMeta(
+          debugName: "start",
+          argNames: [],
+        ),
+        argValues: [],
+        hint: hint,
+      ));
+
+  Future<void> stop({dynamic hint}) => executeNormal(FlutterRustBridgeTask(
+        callFfi: (port_) => inner.wire_stop(port_),
+        parseSuccessData: _wire2api_unit,
+        constMeta: const FlutterRustBridgeTaskConstMeta(
+          debugName: "stop",
           argNames: [],
         ),
         argValues: [],
@@ -49,6 +75,10 @@ int _wire2api_u8(dynamic raw) {
 
 Uint8List _wire2api_uint_8_list(dynamic raw) {
   return raw as Uint8List;
+}
+
+void _wire2api_unit(dynamic raw) {
+  return;
 }
 
 // ignore_for_file: camel_case_types, non_constant_identifier_names, avoid_positional_boolean_parameters, annotate_overrides, constant_identifier_names
@@ -84,6 +114,30 @@ class NativeWire implements FlutterRustBridgeWireBase {
   late final _wire_greetPtr =
       _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>('wire_greet');
   late final _wire_greet = _wire_greetPtr.asFunction<void Function(int)>();
+
+  void wire_start(
+    int port_,
+  ) {
+    return _wire_start(
+      port_,
+    );
+  }
+
+  late final _wire_startPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>('wire_start');
+  late final _wire_start = _wire_startPtr.asFunction<void Function(int)>();
+
+  void wire_stop(
+    int port_,
+  ) {
+    return _wire_stop(
+      port_,
+    );
+  }
+
+  late final _wire_stopPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>('wire_stop');
+  late final _wire_stop = _wire_stopPtr.asFunction<void Function(int)>();
 
   void free_WireSyncReturnStruct(
     WireSyncReturnStruct val,

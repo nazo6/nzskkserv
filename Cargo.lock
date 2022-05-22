@@ -516,7 +516,15 @@ dependencies = [
 name = "native"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "flutter_rust_bridge",
+ "log",
+ "nzskkserv-core",
+ "once_cell",
+ "serde",
+ "serde_json",
+ "simple_logger",
+ "tokio",
 ]
 
 [[package]]
@@ -582,7 +590,9 @@ dependencies = [
  "encoding_rs",
  "futures",
  "log",
+ "once_cell",
  "reqwest",
+ "serde",
  "thiserror",
  "tokio",
  "tokio-stream",

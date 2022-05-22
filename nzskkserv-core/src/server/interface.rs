@@ -1,5 +1,9 @@
-#[derive(Debug)]
-pub(crate) enum SkkIncomingEvent {
+#[cfg(feature = "serialize")]
+use serde::{Deserialize, Serialize};
+
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[derive(Debug, Clone)]
+pub enum SkkIncomingEvent {
     /// 0
     Disconnect,
     /// 1
@@ -12,8 +16,9 @@ pub(crate) enum SkkIncomingEvent {
     Server,
 }
 
-#[derive(Debug)]
-pub(crate) enum SkkOutcomingEvent {
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[derive(Debug, Clone)]
+pub enum SkkOutcomingEvent {
     Convert(Option<String>),
     Version,
     Hostname,
