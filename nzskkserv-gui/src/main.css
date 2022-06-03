@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  [type='text'],
+  [type='number'] {
+    @apply p-1;
+  }
+}
+
+* {
+  user-select: none;
+}
