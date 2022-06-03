@@ -1,0 +1,19 @@
+{
+  "name": "nzskkserv-gui",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build"
+  },
+  "keywords": [],
+  "author": "nazo6",
+  "license": "MIT",
+  "devDependencies": {
+    "@tauri-apps/cli": "1.0.0-rc.13",
+    "unplugin-icons": "^0.14.3",
+    "vite": "^2.9.9",
+    "vite-plugin-solid": "^2.2.6",
+    "vite-tsconfig-paths": "^3.5.0"
+  }
+}
