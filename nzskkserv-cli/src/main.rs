@@ -1,11 +1,11 @@
 use anyhow::Error;
-use std::net::{IpAddr, Ipv4Addr};
+use std::net::{ipaddr, ipv4addr};
 
 pub mod config;
 mod dict_utils;
 
 use config::Config;
-use log::{info, debug};
+use log::{debug, info};
 
 use crate::config::write_config;
 
@@ -23,8 +23,13 @@ async fn main() -> Result<(), Error> {
     };
     let dicts = load_dicts(config.dicts).await;
 
-    let server =
-        nzskkserv_core::Server::new(LOCALHOST, config.port.unwrap_or(1178), dicts, config.enable_google_cgi, encoding);
+    let server = nzskkserv_core::Server::new(
+        LOCALHOST,
+        config.port.unwrap_or(1178),
+        dicts,
+        config.enable_google_cgi,
+        encoding,
+    );
     let start_server = || async {
         let _ = server.start().await;
         info!("Server exited")
@@ -55,7 +60,7 @@ async fn load_dicts(dicts: Vec<config::Dict>) -> Vec<nzskkserv_core::Dict> {
         let dict_data = dict_utils::get_dict_data(dict).await;
         match dict_data {
             Ok(dict_data) => dicts_data.push(dict_data),
-            Err(e) => info!("Dict load error: {:?}", e)
+            Err(e) => info!("Dict load error: {:?}", e),
         }
     }
     info!("Loaded {} dicts", dicts_data.len());

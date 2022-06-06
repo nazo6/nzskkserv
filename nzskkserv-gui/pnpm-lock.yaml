@@ -1,8 +1,11 @@
 lockfileVersion: 5.4
 
 specifiers:
+  '@tauri-apps/api': 1.0.0-rc.6
   '@tauri-apps/cli': 1.0.0-rc.13
+  autoprefixer: ^10.4.7
   daisyui: ^2.15.2
+  postcss: ^8.4.14
   solid-js: ^1.4.3
   tailwindcss: ^3.0.24
   unplugin-icons: ^0.14.3
@@ -14,8 +17,11 @@ dependencies:
   solid-js: 1.4.3
 
 devDependencies:
+  '@tauri-apps/api': 1.0.0-rc.6
   '@tauri-apps/cli': 1.0.0-rc.13
-  daisyui: 2.15.2
+  autoprefixer: 10.4.7_postcss@8.4.14
+  daisyui: 2.15.2_ugi4xkrfysqkt4c4y6hkyfj344
+  postcss: 8.4.14
   tailwindcss: 3.0.24
   unplugin-icons: 0.14.3_vite@2.9.9
   vite: 2.9.9
@@ -422,6 +428,13 @@ packages:
       fastq: 1.13.0
     dev: true
 
+  /@tauri-apps/api/1.0.0-rc.6:
+    resolution: {integrity: sha512-/PbVs3/dUzid0/1XbML8tAkRSOmp+6Gv9ql02HGt3aIjNTvaL2902qEbiTX6xK++3oUoKJJ88t+V6IiNd1JUkw==}
+    engines: {node: '>= 12.13.0', npm: '>= 6.6.0', yarn: '>= 1.19.1'}
+    dependencies:
+      type-fest: 2.12.2
+    dev: true
+
   /@tauri-apps/cli-darwin-arm64/1.0.0-rc.13:
     resolution: {integrity: sha512-/EqOz7ASHOU98H58Ibbkg12pLG/P5oyQz8OlueaMYryajkJdmi+bHTkJ05DfbS0owAaHkRJ6f+NmoW/AnyqUbg==}
     engines: {node: '>= 10'}
@@ -555,6 +568,22 @@ packages:
 
   /arg/5.0.1:
     resolution: {integrity: sha512-e0hDa9H2Z9AwFkk2qDlwhoMYE4eToKarchkQHovNdLTCYMHZHeRjI71crOh+dio4K6u1IcwubQqo79Ga4CyAQA==}
+    dev: true
+
+  /autoprefixer/10.4.7_postcss@8.4.14:
+    resolution: {integrity: sha512-ypHju4Y2Oav95SipEcCcI5J7CGPuvz8oat7sUtYj3ClK44bldfvtvcxK6IEK++7rqB7YchDGzweZIBG+SD0ZAA==}
+    engines: {node: ^10 || ^12 || >=14}
+    hasBin: true
+    peerDependencies:
+      postcss: ^8.1.0
+    dependencies:
+      browserslist: 4.20.3
+      caniuse-lite: 1.0.30001346
+      fraction.js: 4.2.0
+      normalize-range: 0.1.2
+      picocolors: 1.0.0
+      postcss: 8.4.14
+      postcss-value-parser: 4.2.0
     dev: true
 
   /babel-plugin-jsx-dom-expressions/0.33.7_@babel+core@7.18.2:
@@ -697,15 +726,17 @@ packages:
     hasBin: true
     dev: true
 
-  /daisyui/2.15.2:
+  /daisyui/2.15.2_ugi4xkrfysqkt4c4y6hkyfj344:
     resolution: {integrity: sha512-12hjzlOUkGVzMPKhaBc8soqNY2mJWGTYJF8sTuCibDcdGbHDmYgBUY0OX1HHIVq/qh2vELh5yHb4QCgCDWUAwg==}
     peerDependencies:
       autoprefixer: ^10.0.2
       postcss: ^8.1.6
     dependencies:
+      autoprefixer: 10.4.7_postcss@8.4.14
       color: 4.2.3
       css-selector-tokenizer: 0.8.0
-      postcss-js: 4.0.0
+      postcss: 8.4.14
+      postcss-js: 4.0.0_postcss@8.4.14
       tailwindcss: 3.0.24
     transitivePeerDependencies:
       - ts-node
@@ -1018,6 +1049,10 @@ packages:
       path-exists: 4.0.0
     dev: true
 
+  /fraction.js/4.2.0:
+    resolution: {integrity: sha512-MhLuK+2gUcnZe8ZHlaaINnQLl0xRIGRfcGk2yl8xoQAfHrSsL3rYu6FCmBdkdbhc9EPlwyGHewaRsvwRMJtAlA==}
+    dev: true
+
   /fsevents/2.3.2:
     resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -1226,6 +1261,11 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
+  /normalize-range/0.1.2:
+    resolution: {integrity: sha512-bdok/XvKII3nUpklnV6P2hxtMNrCboOjAcyBuQnWEhO665FwrSNRxU+AqpsyvO6LgGYPspN+lu5CLtw4jPRKNA==}
+    engines: {node: '>=0.10.0'}
+    dev: true
+
   /npm-run-path/4.0.1:
     resolution: {integrity: sha512-S48WzZW777zhNIrn7gxOlISNAqi9ZC/uQFnRdbeIHhZhCA6UqpkOT8T1G7BvfdgP4Er8gF4sUbaS0i7QvIfCWw==}
     engines: {node: '>=8'}
@@ -1280,15 +1320,6 @@ packages:
   /picomatch/2.3.1:
     resolution: {integrity: sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==}
     engines: {node: '>=8.6'}
-    dev: true
-
-  /postcss-js/4.0.0:
-    resolution: {integrity: sha512-77QESFBwgX4irogGVPgQ5s07vLvFqWr228qZY+w6lW599cRlK/HmnlivnnVUxkjHnCu4J16PDMHcH+e+2HbvTQ==}
-    engines: {node: ^12 || ^14 || >= 16}
-    peerDependencies:
-      postcss: ^8.3.3
-    dependencies:
-      camelcase-css: 2.0.1
     dev: true
 
   /postcss-js/4.0.0_postcss@8.4.14:
@@ -1535,6 +1566,11 @@ packages:
 
   /tslib/1.14.1:
     resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
+    dev: true
+
+  /type-fest/2.12.2:
+    resolution: {integrity: sha512-qt6ylCGpLjZ7AaODxbpyBZSs9fCI9SkL3Z9q2oxMBQhs/uyY+VD8jHA8ULCGmWQJlBgqvO3EJeAngOHD8zQCrQ==}
+    engines: {node: '>=12.20'}
     dev: true
 
   /unplugin-icons/0.14.3_vite@2.9.9:
