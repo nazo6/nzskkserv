@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] 
+
 use anyhow::Result;
 use config::load_config;
 use crossbeam::channel::unbounded;
