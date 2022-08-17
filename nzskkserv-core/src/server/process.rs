@@ -1,6 +1,5 @@
 use futures::SinkExt;
 use log::{debug, info, warn};
-use std::collections::HashMap;
 use tokio::net::TcpStream;
 use tokio_stream::StreamExt;
 use tokio_util::codec::Framed;
@@ -13,14 +12,9 @@ use crate::{
     Error,
 };
 
-#[derive(Clone)]
-pub(crate) struct Configuration {
-    pub dicts: Vec<HashMap<String, String>>,
-    pub enable_google_cgi: bool,
-    pub encoding: crate::Encoding,
-}
+use super::ServerConfig;
 
-pub(crate) async fn process(stream: TcpStream, config: Configuration) -> Result<(), Error> {
+pub(crate) async fn process(stream: TcpStream, config: ServerConfig) -> Result<(), Error> {
     let mut framed = Framed::new(stream, SkkCodec::new(&config.encoding));
     while let Some(message) = framed.next().await {
         match message {
@@ -55,7 +49,7 @@ pub(crate) async fn process(stream: TcpStream, config: Configuration) -> Result<
 
     Ok(())
 }
-async fn convert(str: &str, config: &Configuration) -> Option<String> {
+async fn convert(str: &str, config: &ServerConfig) -> Option<String> {
     let mut candidates: Vec<String> = Vec::new();
     for dict in &config.dicts {
         let value = dict.get(str);

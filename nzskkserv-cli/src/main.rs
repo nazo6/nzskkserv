@@ -1,4 +1,5 @@
 use anyhow::Error;
+use nzskkserv_core::server::ServerConfig;
 use std::net::{IpAddr, Ipv4Addr};
 
 pub mod config;
@@ -23,13 +24,13 @@ async fn main() -> Result<(), Error> {
     };
     let dicts = load_dicts(config.dicts).await;
 
-    let server = nzskkserv_core::Server::new(
-        LOCALHOST,
-        config.port.unwrap_or(1178),
+    let server_config = ServerConfig {
         dicts,
-        config.enable_google_cgi,
+        enable_google_cgi: config.enable_google_cgi,
         encoding,
-    );
+    };
+    let server = nzskkserv_core::Server::new(LOCALHOST, config.port.unwrap_or(1178), server_config);
+
     let start_server = || async {
         let _ = server.start().await;
         info!("Server exited")

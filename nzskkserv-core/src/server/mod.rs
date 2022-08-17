@@ -12,36 +12,29 @@ pub mod interface;
 mod process;
 
 use crate::Error;
+use process::process;
 
-use crate::Encoding;
-
-use self::process::{process, Configuration};
+#[derive(Clone)]
+pub struct ServerConfig {
+    pub dicts: Vec<crate::Dict>,
+    pub enable_google_cgi: bool,
+    pub encoding: crate::Encoding,
+}
 
 pub struct Server {
     address: IpAddr,
     port: u16,
-    configurator: watch::Sender<Configuration>,
+    configurator: watch::Sender<ServerConfig>,
     killer: broadcast::Sender<()>,
 }
-
 impl Server {
     /// 新しいskkサーバを作成します。
     ///
     /// dictsは(見出し語, 候補)の配列です。配列の順番が候補順になります。
     /// encodingはskkクライアントと通信するときに使う文字コードです。EUC-JPかUTF-8を使用できます。
-    pub fn new(
-        address: IpAddr,
-        port: u16,
-        dicts: Vec<crate::Dict>,
-        enable_google_cgi: bool,
-        encoding: Encoding,
-    ) -> Self {
+    pub fn new(address: IpAddr, port: u16, config: ServerConfig) -> Self {
         let (killer, _) = broadcast::channel(1);
-        let (configurator, _) = watch::channel(Configuration {
-            dicts,
-            enable_google_cgi,
-            encoding,
-        });
+        let (configurator, _) = watch::channel(config);
         Server {
             address,
             port,
@@ -83,15 +76,19 @@ impl Server {
     /// 辞書をサーバーにセットします。上書きされます。
     pub async fn set_dicts(&self, dicts: Vec<crate::Dict>) -> Option<()> {
         let crr = (*self.configurator.borrow()).clone();
-        self.configurator.send(Configuration { dicts, ..crr }).ok()
+        self.configurator.send(ServerConfig { dicts, ..crr }).ok()
     }
     pub async fn set_google_cgi(&self, enable: bool) -> Option<()> {
         let crr = (*self.configurator.borrow()).clone();
         self.configurator
-            .send(Configuration {
+            .send(ServerConfig {
                 enable_google_cgi: enable,
                 ..crr
             })
             .ok()
+    }
+    pub async fn update_config<F: Fn(ServerConfig) -> ServerConfig>(&self, f: F) {
+        let current_cfg = self.configurator.borrow();
+        f(current_cfg.clone());
     }
 }

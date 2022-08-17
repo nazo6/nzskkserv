@@ -3,7 +3,7 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("Invalid incoming command {0}")]
+    #[error("Invalid incoming command: {0}")]
     InvalidIncomingCommand(String),
     #[error("Error occurred while decoding")]
     Decoding(Bytes),
@@ -17,6 +17,6 @@ pub enum Error {
     Io(#[from] std::io::Error),
     #[error(transparent)]
     Request(#[from] reqwest::Error),
-    #[error("Other error {0}")]
+    #[error("Other error: {0}")]
     Other(String),
 }
