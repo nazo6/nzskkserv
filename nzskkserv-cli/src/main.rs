@@ -1,5 +1,5 @@
 use anyhow::Error;
-use std::net::{ipaddr, ipv4addr};
+use std::net::{IpAddr, Ipv4Addr};
 
 pub mod config;
 mod dict_utils;

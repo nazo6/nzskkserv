@@ -3,10 +3,7 @@
     windows_subsystem = "windows"
 )]
 
-use std::{
-    collections::HashMap,
-    net::{IpAddr, Ipv4Addr},
-};
+use std::net::{IpAddr, Ipv4Addr};
 const LOCALHOST: IpAddr = IpAddr::V4(Ipv4Addr::LOCALHOST);
 
 #[tauri::command]

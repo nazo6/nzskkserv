@@ -23,7 +23,7 @@ pub trait Logger: Sync + Send {
 
 struct NopLogger {}
 impl Logger for NopLogger {
-    fn log(&self, log: LogEntry) {}
+    fn log(&self, _log: LogEntry) {}
 }
 
 static LOGGER: OnceCell<Box<dyn Logger>> = OnceCell::new();
