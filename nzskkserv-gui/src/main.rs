@@ -1,49 +1,88 @@
-use app::App;
+use anyhow::Result;
+use config::load_config;
+use crossbeam::channel::unbounded;
+use dict_utils::load_dicts;
+use log::{ServerLogger, LOGGER};
+use nzskkserv_core::server::ServerConfig;
 use std::{
-    cell::RefCell,
-    rc::Rc,
-    sync::{mpsc, Arc, Mutex},
+    net::{IpAddr, Ipv4Addr},
+    sync::{Arc, Mutex},
+    thread,
 };
 use tray_item::TrayItem;
 
 mod app;
+mod config;
+mod dict_utils;
+mod log;
+
+const LOCALHOST: IpAddr = IpAddr::V4(Ipv4Addr::LOCALHOST);
 
 enum Message {
     Quit,
     ShowHide,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<()> {
+    // Setup logger
+    let server_logger = ServerLogger {
+        global_logger: &LOGGER,
+    };
+    nzskkserv_core::log::set_logger(server_logger)?;
+
+    // Setup task tray
     let mut tray = TrayItem::new("nzskkserv", "tray-icon").unwrap();
-    let is_hidden = Rc::new(RefCell::new(true));
+    let is_hidden = Arc::new(Mutex::new(true));
 
-    let (tx, rx) = mpsc::channel();
+    let (s, r) = unbounded();
 
-    let tx1 = tx.clone();
+    let s1 = s.clone();
     tray.add_menu_item("Show/Hide", move || {
-        tx1.send(Message::ShowHide).unwrap();
+        s1.send(Message::ShowHide).unwrap();
     })
     .unwrap();
 
     tray.add_menu_item("Quit", move || {
-        tx.send(Message::Quit).unwrap();
+        s.send(Message::Quit).unwrap();
     })
     .unwrap();
 
-    loop {
-        match rx.recv() {
+    // Load config and dicts
+    let config = load_config().await;
+    let encoding = match config.server_encoding {
+        config::Encoding::Utf8 => nzskkserv_core::Encoding::Utf8,
+        config::Encoding::Eucjp => nzskkserv_core::Encoding::Eucjp,
+    };
+    let dicts = load_dicts(config.dicts).await;
+    let server_config = ServerConfig {
+        dicts,
+        enable_google_cgi: config.enable_google_cgi,
+        encoding,
+    };
+
+    // Setup server
+    let server = nzskkserv_core::Server::new(LOCALHOST, config.port.unwrap_or(1178), server_config);
+    let server = Arc::new(server);
+
+    // Setup window
+    let app = app::App::new(Arc::clone(&is_hidden), Arc::clone(&server));
+    let options = eframe::NativeOptions::default();
+    let handle = thread::spawn(move || loop {
+        match r.recv() {
             Ok(Message::Quit) => break,
             Ok(Message::ShowHide) => {
-                if *is_hidden.borrow() {
-                    *is_hidden.borrow_mut() = false;
-                    let app = app::App::new(Rc::clone(&is_hidden));
-                    let options = eframe::NativeOptions::default();
-                    eframe::run_native("My egui App", options, Box::new(|_cc| Box::new(app)));
-                } else {
-                    *is_hidden.borrow_mut() = true;
-                }
+                let mut val = is_hidden.lock().unwrap();
+                dbg!(&val);
+                *val = !*val;
             }
             _ => {}
         }
-    }
+    });
+
+    eframe::run_native("My egui App", options, Box::new(|_cc| Box::new(app)));
+
+    handle.join().unwrap();
+
+    Ok(())
 }

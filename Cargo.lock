@@ -516,6 +516,75 @@ dependencies = [
 ]
 
 [[package]]
+name = "crossbeam"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2801af0d36612ae591caa9568261fddce32ce6e08a7275ea334a06a4ad021a2c"
+dependencies = [
+ "cfg-if",
+ "crossbeam-channel",
+ "crossbeam-deque",
+ "crossbeam-epoch",
+ "crossbeam-queue",
+ "crossbeam-utils",
+]
+
+[[package]]
+name = "crossbeam-channel"
+version = "0.5.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2dd04ddaf88237dc3b8d8f9a3c1004b506b54b3313403944054d23c0870c521"
+dependencies = [
+ "cfg-if",
+ "crossbeam-utils",
+]
+
+[[package]]
+name = "crossbeam-deque"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "715e8152b692bba2d374b53d4875445368fdf21a94751410af607a5ac677d1fc"
+dependencies = [
+ "cfg-if",
+ "crossbeam-epoch",
+ "crossbeam-utils",
+]
+
+[[package]]
+name = "crossbeam-epoch"
+version = "0.9.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "045ebe27666471bb549370b4b0b3e51b07f56325befa4284db65fc89c02511b1"
+dependencies = [
+ "autocfg",
+ "cfg-if",
+ "crossbeam-utils",
+ "memoffset",
+ "once_cell",
+ "scopeguard",
+]
+
+[[package]]
+name = "crossbeam-queue"
+version = "0.3.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1cd42583b04998a5363558e5f9291ee5a5ff6b49944332103f251e7479a82aa7"
+dependencies = [
+ "cfg-if",
+ "crossbeam-utils",
+]
+
+[[package]]
+name = "crossbeam-utils"
+version = "0.8.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "51887d4adc7b564537b15adcfb307936f8075dfcd5f00dde9a9f1d29383682bc"
+dependencies = [
+ "cfg-if",
+ "once_cell",
+]
+
+[[package]]
 name = "crossfont"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -714,7 +783,7 @@ source = "git+https://github.com/emilk/egui#39b63f6163c7aabbf20138b505f0c86d6297
 dependencies = [
  "bytemuck",
  "dark-light",
- "egui",
+ "egui 0.18.1 (git+https://github.com/emilk/egui)",
  "egui-winit",
  "egui_glow",
  "glow",
@@ -731,10 +800,21 @@ dependencies = [
 [[package]]
 name = "egui"
 version = "0.18.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eb095a8b9feb9b7ff8f00b6776dffcef059538a3f4a91238e03c900e9c9ad9a2"
+dependencies = [
+ "ahash 0.7.6",
+ "epaint 0.18.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nohash-hasher",
+]
+
+[[package]]
+name = "egui"
+version = "0.18.1"
 source = "git+https://github.com/emilk/egui#39b63f6163c7aabbf20138b505f0c86d62977408"
 dependencies = [
  "ahash 0.7.6",
- "epaint",
+ "epaint 0.18.1 (git+https://github.com/emilk/egui)",
  "nohash-hasher",
  "tracing",
 ]
@@ -745,7 +825,7 @@ version = "0.18.0"
 source = "git+https://github.com/emilk/egui#39b63f6163c7aabbf20138b505f0c86d62977408"
 dependencies = [
  "arboard",
- "egui",
+ "egui 0.18.1 (git+https://github.com/emilk/egui)",
  "instant",
  "smithay-clipboard",
  "tracing",
@@ -759,13 +839,19 @@ version = "0.18.1"
 source = "git+https://github.com/emilk/egui#39b63f6163c7aabbf20138b505f0c86d62977408"
 dependencies = [
  "bytemuck",
- "egui",
+ "egui 0.18.1 (git+https://github.com/emilk/egui)",
  "glow",
  "memoffset",
  "tracing",
  "wasm-bindgen",
  "web-sys",
 ]
+
+[[package]]
+name = "emath"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c223f58c7e38abe1770f367b969f1b3fbd4704b67666bcb65dbb1adb0980ba72"
 
 [[package]]
 name = "emath"
@@ -808,13 +894,27 @@ dependencies = [
 [[package]]
 name = "epaint"
 version = "0.18.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0c29567088888e8ac3e8f61bbb2ddc820207ebb8d69eefde5bcefa06d65e4e89"
+dependencies = [
+ "ab_glyph",
+ "ahash 0.7.6",
+ "atomic_refcell",
+ "emath 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nohash-hasher",
+ "parking_lot 0.12.0",
+]
+
+[[package]]
+name = "epaint"
+version = "0.18.1"
 source = "git+https://github.com/emilk/egui#39b63f6163c7aabbf20138b505f0c86d62977408"
 dependencies = [
  "ab_glyph",
  "ahash 0.7.6",
  "atomic_refcell",
  "bytemuck",
- "emath",
+ "emath 0.18.0 (git+https://github.com/emilk/egui)",
  "nohash-hasher",
  "parking_lot 0.12.0",
 ]
@@ -1934,7 +2034,7 @@ dependencies = [
  "log",
  "nzskkserv-core",
  "reqwest",
- "sanitize-filename",
+ "sanitize-filename 0.3.0",
  "serde",
  "simple_logger",
  "tokio",
@@ -1963,7 +2063,21 @@ dependencies = [
 name = "nzskkserv-gui"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "crossbeam",
+ "directories",
  "eframe",
+ "egui 0.18.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "encoding_rs",
+ "nzskkserv-core",
+ "once_cell",
+ "poll-promise",
+ "reqwest",
+ "sanitize-filename 0.4.0",
+ "serde",
+ "simple_logger",
+ "tokio",
+ "toml",
  "tray-item",
  "windres",
 ]
@@ -2218,6 +2332,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "poll-promise"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "260817b339544e5b23d4bb66d4522d89dd64af88d16b6dcd7b2a2409ee2e095d"
+dependencies = [
+ "static_assertions",
+ "tokio",
+]
+
+[[package]]
 name = "polling"
 version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2467,6 +2591,16 @@ name = "sanitize-filename"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bf18934a12018228c5b55a6dae9df5d0641e3566b3630cb46cc55564068e7c2f"
+dependencies = [
+ "lazy_static",
+ "regex",
+]
+
+[[package]]
+name = "sanitize-filename"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08c502bdb638f1396509467cb0580ef3b29aa2a45c5d43e5d84928241280296c"
 dependencies = [
  "lazy_static",
  "regex",

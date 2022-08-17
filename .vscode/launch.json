@@ -1,0 +1,101 @@
+{
+    // IntelliSense を使用して利用可能な属性を学べます。
+    // 既存の属性の説明をホバーして表示します。
+    // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'nzskkserv-core'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=nzskkserv-core"
+                ],
+                "filter": {
+                    "name": "nzskkserv-core",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'nzskkserv-cli'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=nzskkserv-cli",
+                    "--package=nzskkserv-cli"
+                ],
+                "filter": {
+                    "name": "nzskkserv-cli",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'nzskkserv-cli'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=nzskkserv-cli",
+                    "--package=nzskkserv-cli"
+                ],
+                "filter": {
+                    "name": "nzskkserv-cli",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'nzskkserv-gui'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=nzskkserv-gui",
+                    "--package=nzskkserv-gui"
+                ],
+                "filter": {
+                    "name": "nzskkserv-gui",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'nzskkserv-gui'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=nzskkserv-gui",
+                    "--package=nzskkserv-gui"
+                ],
+                "filter": {
+                    "name": "nzskkserv-gui",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

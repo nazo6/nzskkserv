@@ -8,12 +8,14 @@ use crate::{
 };
 
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[derive(Debug, Clone)]
 pub struct LogEntry {
     pub event: LogEvent,
     pub level: u8,
 }
 
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[derive(Debug, Clone)]
 pub enum LogEvent {
     Incoming(SkkIncomingEvent),
     Outcoming(SkkOutcomingEvent),
