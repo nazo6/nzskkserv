@@ -1,6 +1,7 @@
 //! SKKサーバ本体
 
 use std::net::IpAddr;
+use std::sync::Mutex;
 
 use log::info;
 use tokio::net::TcpListener;
@@ -26,6 +27,7 @@ pub struct Server {
     port: u16,
     configurator: watch::Sender<ServerConfig>,
     killer: broadcast::Sender<()>,
+    running: Mutex<bool>,
 }
 impl Server {
     /// 新しいskkサーバを作成します。
@@ -40,15 +42,19 @@ impl Server {
             port,
             configurator,
             killer,
+            running: Mutex::new(false),
         }
     }
     /// skkサーバを開始します。
     pub async fn start(&self) -> Result<(), Error> {
         let kill_reciever = &mut self.killer.subscribe();
-        tokio::select! {
+        *self.running.lock().unwrap() = true;
+        let res = tokio::select! {
             output = self.real_start() => output,
             _ = kill_reciever.recv() => Ok(()),
-        }
+        };
+        *self.running.lock().unwrap() = false;
+        res
     }
     async fn real_start(&self) -> Result<(), Error> {
         info!("Starting server: {}:{}", self.address, self.port);
@@ -90,5 +96,9 @@ impl Server {
     pub async fn update_config<F: Fn(ServerConfig) -> ServerConfig>(&self, f: F) {
         let current_cfg = self.configurator.borrow();
         f(current_cfg.clone());
+    }
+    pub fn get_running(&self) -> bool {
+        let res = *self.running.lock().unwrap();
+        res
     }
 }
