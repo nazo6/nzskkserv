@@ -1,13 +1,11 @@
-use std::collections::HashMap;
-
 use futures::SinkExt;
 use log::{debug, info, warn};
+use std::collections::HashMap;
 use tokio::net::TcpStream;
 use tokio_stream::StreamExt;
 use tokio_util::codec::Framed;
 
 use crate::{
-    log::{log, LogEntry, LogEvent},
     server::{
         codec::SkkCodec,
         interface::{SkkIncomingEvent, SkkOutcomingEvent},
@@ -22,10 +20,7 @@ pub(crate) struct Configuration {
     pub encoding: crate::Encoding,
 }
 
-pub(crate) async fn process(
-    stream: TcpStream,
-    config: Configuration,
-) -> Result<(), super::error::Error> {
+pub(crate) async fn process(stream: TcpStream, config: Configuration) -> Result<(), Error> {
     let mut framed = Framed::new(stream, SkkCodec::new(&config.encoding));
     while let Some(message) = framed.next().await {
         match message {

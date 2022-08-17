@@ -1,8 +1,9 @@
-pub mod server;
-pub use server::error::Error;
-pub use server::Server;
-
+pub mod error;
 pub mod log;
+pub mod server;
+
+pub use error::Error;
+pub use server::Server;
 
 #[derive(Clone)]
 pub enum Encoding {

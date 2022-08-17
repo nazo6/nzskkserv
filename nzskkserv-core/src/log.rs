@@ -2,7 +2,10 @@ use once_cell::sync::OnceCell;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
 
-use crate::server::interface::{SkkIncomingEvent, SkkOutcomingEvent};
+use crate::{
+    server::interface::{SkkIncomingEvent, SkkOutcomingEvent},
+    Error,
+};
 
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct LogEntry {
@@ -28,8 +31,8 @@ impl Logger for NopLogger {
 
 static LOGGER: OnceCell<Box<dyn Logger>> = OnceCell::new();
 
-pub fn set_logger(logger: impl Logger + 'static) {
-    LOGGER.set(Box::new(logger));
+pub fn set_logger(logger: impl Logger + 'static) -> Result<(), Error> {
+    LOGGER.set(Box::new(logger)).map_err(|_| Error::LoggerSet)
 }
 
 pub(crate) fn log(log_entry: LogEntry) {

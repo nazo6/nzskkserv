@@ -11,6 +11,8 @@ pub enum Error {
     Encoding(Bytes),
     #[error("Error occurred while parsing google cgi data")]
     GoogleCgiParse,
+    #[error("Failed to set logger. Maybe already set?")]
+    LoggerSet,
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error(transparent)]

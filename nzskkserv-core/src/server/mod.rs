@@ -8,11 +8,10 @@ use tokio::sync::broadcast;
 use tokio::sync::watch;
 
 mod codec;
-pub mod error;
 pub mod interface;
 mod process;
 
-use error::Error;
+use crate::Error;
 
 use crate::Encoding;
 

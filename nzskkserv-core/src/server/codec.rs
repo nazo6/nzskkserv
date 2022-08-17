@@ -3,7 +3,7 @@ use encoding_rs::{EUC_JP, UTF_8};
 use log::info;
 use tokio_util::codec::{Decoder, Encoder};
 
-use super::error::Error;
+use crate::Error;
 use crate::{
     log::{log, LogEntry, LogEvent},
     Encoding,
@@ -52,7 +52,7 @@ impl Decoder for SkkCodec {
                     let content: Option<&str>;
                     if str.ends_with(" \n") {
                         content = str.get(1..str.len() - 2);
-                    } else if str.ends_with(" ") {
+                    } else if str.ends_with(' ') {
                         content = str.get(1..str.len() - 1);
                     } else {
                         content = None;
@@ -72,7 +72,7 @@ impl Decoder for SkkCodec {
                 event: match &data {
                     Ok(Some(event)) => LogEvent::Incoming(event.clone()),
                     Ok(None) => unreachable!(),
-                    Err(err) => LogEvent::Message("error".to_string()),
+                    Err(err) => LogEvent::Message(err.to_string()),
                 },
                 level: 0,
             });
