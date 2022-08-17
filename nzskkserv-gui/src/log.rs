@@ -13,6 +13,7 @@ impl Logger for ServerLogger {
     }
 }
 
+#[derive(Clone)]
 pub(crate) enum GlobalLogEntry {
     ServerLog(LogEntry),
     AppLog(String),
@@ -24,7 +25,6 @@ pub(crate) struct GlobalLogger {
 
 impl GlobalLogger {
     pub(crate) fn server_log(&self, entry: LogEntry) {
-        dbg!(&entry);
         self.logs
             .lock()
             .unwrap()
@@ -35,6 +35,9 @@ impl GlobalLogger {
             .lock()
             .unwrap()
             .push(GlobalLogEntry::AppLog(entry));
+    }
+    pub(crate) fn get_logs(&self) -> Vec<GlobalLogEntry> {
+        (*self.logs.lock().unwrap()).clone()
     }
 }
 

@@ -76,40 +76,49 @@ async fn main() -> Result<()> {
     let is_hidden = Arc::new(Mutex::new(true));
     let is_exit = Arc::new(Mutex::new(false));
 
-    let app = app::App::new(
-        Arc::clone(&is_hidden),
-        Arc::clone(&is_exit),
-        Arc::clone(&server),
-    );
-
     let options = eframe::NativeOptions::default();
-    thread::spawn(move || {
-        let mut is_running = false;
-        loop {
-            match mes_reciver.recv() {
-                Ok(Message::Quit) => {
-                    *is_exit.lock().unwrap() = true;
-                    break;
-                }
-                Ok(Message::ShowHide) => {
-                    let mut is_hidden = is_hidden.lock().unwrap();
-                    if !is_running {
-                        if *is_hidden {
-                            start_send.send(()).unwrap();
-                            is_running = true;
-                        } else {
-                            unreachable!()
-                        }
+    {
+        let is_hidden = Arc::clone(&is_hidden);
+        let is_exit = Arc::clone(&is_exit);
+        thread::spawn(move || {
+            let mut is_running = false;
+            loop {
+                match mes_reciver.recv() {
+                    Ok(Message::Quit) => {
+                        *is_exit.lock().unwrap() = true;
+                        break;
                     }
-                    *is_hidden = !*is_hidden;
+                    Ok(Message::ShowHide) => {
+                        let mut is_hidden = is_hidden.lock().unwrap();
+                        if !is_running {
+                            if *is_hidden {
+                                start_send.send(()).unwrap();
+                                is_running = true;
+                            } else {
+                                unreachable!()
+                            }
+                        }
+                        *is_hidden = !*is_hidden;
+                    }
+                    _ => {}
                 }
-                _ => {}
             }
-        }
-    });
+        });
+    }
 
     if let Ok(()) = start_recv.recv() {
-        eframe::run_native("nzskkserv-gui", options, Box::new(|_cc| Box::new(app)));
+        eframe::run_native(
+            "nzskkserv-gui",
+            options,
+            Box::new(move |cc| {
+                Box::new(app::App::new(
+                    cc,
+                    Arc::clone(&is_hidden),
+                    Arc::clone(&is_exit),
+                    Arc::clone(&server),
+                ))
+            }),
+        );
         println!("exit")
     }
 
