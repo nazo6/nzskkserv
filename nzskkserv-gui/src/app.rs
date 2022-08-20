@@ -149,71 +149,71 @@ impl App {
     }
     fn log_view(&mut self, ui: &mut egui::Ui) {
         ui.heading("Logs");
-        ui.vertical(|ui| {
-            egui::ScrollArea::both().show(ui, |ui| {
-                egui::Grid::new("log_grid").show(ui, |ui| {
-                    for item in LOGGER.get_logs().iter().rev() {
-                        match item {
-                            GlobalLogEntry::ServerLog(log) => {
-                                ui.label(
-                                    RichText::new("Server")
-                                        .background_color(Color32::BLUE)
-                                        .color(Color32::WHITE),
-                                );
-                                match &log.event {
-                                    LogEvent::Incoming(e) => {
-                                        ui.label(RichText::new("⬅ In").color(Color32::BLUE));
-                                        match e {
-                                            SkkIncomingEvent::Disconnect => {
-                                                ui.label("Disconnecting");
-                                            }
-                                            SkkIncomingEvent::Convert(str) => {
-                                                let mut text = "Converting: ".to_string();
-                                                text.push_str(str);
-                                                ui.label(text);
-                                            }
-                                            _ => {
-                                                ui.label("Unknown");
-                                            }
+        egui::ScrollArea::both().show(ui, |ui| {
+            egui::Grid::new("log_grid").show(ui, |ui| {
+                for item in LOGGER.get_logs().iter().rev() {
+                    match item {
+                        GlobalLogEntry::ServerLog(log) => {
+                            ui.label(
+                                RichText::new("Server")
+                                    .background_color(Color32::BLUE)
+                                    .color(Color32::WHITE),
+                            );
+                            ui.label(label_from_log_level(log.level));
+                            match &log.event {
+                                LogEvent::Incoming(e) => {
+                                    ui.label(RichText::new("⬅ In").color(Color32::BLUE));
+                                    match e {
+                                        SkkIncomingEvent::Disconnect => {
+                                            ui.label("Disconnecting");
                                         }
-                                    }
-                                    LogEvent::OutGoing(e) => {
-                                        ui.label(RichText::new("➡ Out").color(Color32::RED));
-                                        match e {
-                                            SkkOutGoingEvent::Convert(str) => {
-                                                let mut text = "Converted: ".to_string();
-                                                if let Some(str) = str {
-                                                    text.push_str(str);
-                                                } else {
-                                                    text.push_str("(None)");
-                                                }
-                                                ui.label(text);
-                                            }
-                                            _ => {
-                                                ui.label("Unknown");
-                                            }
+                                        SkkIncomingEvent::Convert(str) => {
+                                            let mut text = "Converting: ".to_string();
+                                            text.push_str(str);
+                                            ui.label(text);
                                         }
-                                    }
-                                    LogEvent::Message(str) => {
-                                        ui.label("Message");
-                                        ui.label(str);
+                                        _ => {
+                                            ui.label("Unknown");
+                                        }
                                     }
                                 }
-                            }
-                            GlobalLogEntry::AppLog(log) => {
-                                ui.label(
-                                    RichText::new("App")
-                                        .background_color(Color32::RED)
-                                        .color(Color32::WHITE),
-                                );
-                                ui.label("Message");
-                                ui.label(&log.message);
+                                LogEvent::OutGoing(e) => {
+                                    ui.label(RichText::new("➡ Out").color(Color32::RED));
+                                    match e {
+                                        SkkOutGoingEvent::Convert(str) => {
+                                            let mut text = "Converted: ".to_string();
+                                            if let Some(str) = str {
+                                                text.push_str(str);
+                                            } else {
+                                                text.push_str("(None)");
+                                            }
+                                            ui.label(text);
+                                        }
+                                        _ => {
+                                            ui.label("Unknown");
+                                        }
+                                    }
+                                }
+                                LogEvent::Message(str) => {
+                                    ui.label("Message");
+                                    ui.label(str);
+                                }
                             }
                         }
-                        ui.end_row();
+                        GlobalLogEntry::AppLog(log) => {
+                            ui.label(
+                                RichText::new("App")
+                                    .background_color(Color32::RED)
+                                    .color(Color32::WHITE),
+                            );
+                            ui.label(label_from_log_level(log.level));
+                            ui.label("Message");
+                            ui.label(&log.message);
+                        }
                     }
-                })
-            });
+                    ui.end_row();
+                }
+            })
         });
     }
     fn config_view(&mut self, ui: &mut egui::Ui) {
@@ -226,6 +226,26 @@ impl App {
                 AUTO_LAUNCH.disable();
             }
         });
+    }
+}
+
+fn label_from_log_level(level: u8) -> RichText {
+    if level == 0 {
+        RichText::new("INFO")
+            .background_color(Color32::DARK_BLUE)
+            .color(Color32::WHITE)
+    } else if level == 1 {
+        RichText::new("WARN")
+            .background_color(Color32::YELLOW)
+            .color(Color32::WHITE)
+    } else if level == 2 {
+        RichText::new("INFO")
+            .background_color(Color32::RED)
+            .color(Color32::WHITE)
+    } else {
+        RichText::new("UNKNOWN")
+            .background_color(Color32::BLACK)
+            .color(Color32::WHITE)
     }
 }
 

@@ -4,7 +4,10 @@ use directories::ProjectDirs;
 use encoding_rs::{EUC_JP, UTF_8};
 use nzskkserv_core::Dict;
 
-use crate::config::{DictConf, DictPath, DictUrl, Encoding};
+use crate::{
+    config::{DictConf, DictPath, DictUrl, Encoding},
+    warn,
+};
 use anyhow::{Context, Error};
 
 pub(crate) async fn load_dicts(dicts: Vec<DictConf>) -> Vec<Dict> {
@@ -13,7 +16,7 @@ pub(crate) async fn load_dicts(dicts: Vec<DictConf>) -> Vec<Dict> {
         let dict_data = get_dict_data(dict).await;
         match dict_data {
             Ok(dict_data) => dicts_data.push(dict_data),
-            Err(e) => (),
+            Err(e) => (warn!("Failed to load dict: {}", e)),
         }
     }
     dicts_data

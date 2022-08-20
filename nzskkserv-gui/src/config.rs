@@ -49,7 +49,7 @@ pub(crate) const DEFAULT_CONFIG: Config = Config {
 pub(crate) async fn load_config() -> Result<Config> {
     let config = match read_config().await {
         Ok(config) => config,
-        Err(e) => {
+        Err(_e) => {
             info!("Could not read config. Creating new one...");
             write_config(&DEFAULT_CONFIG).await?;
             DEFAULT_CONFIG
