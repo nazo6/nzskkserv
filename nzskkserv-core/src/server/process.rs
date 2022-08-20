@@ -89,14 +89,13 @@ async fn convert(str: &str, config: &ServerConfig) -> Option<String> {
     }
 }
 async fn fetch_google_cgi(query: &str) -> Result<String, Error> {
-    info!("Querying to google cgi server");
     type GoogleCgiResponse = Vec<(String, Vec<String>)>;
     let mut url = "http://www.google.com/transliterate?langpair=ja-Hira|ja&text=".to_string();
     url.push_str(&urlencoding::encode(query));
     url.push(',');
     let result = reqwest::get(url).await?.json::<GoogleCgiResponse>().await?;
 
-    info!("Got response from google cgi server: {:?}", result);
+    info!("Converted by google cgi server: {:?}", result);
 
     let candidates = &result.get(0).ok_or(Error::GoogleCgiParse)?.1;
 
