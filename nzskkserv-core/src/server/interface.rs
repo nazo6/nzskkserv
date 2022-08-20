@@ -1,7 +1,3 @@
-#[cfg(feature = "serialize")]
-use serde::{Deserialize, Serialize};
-
-#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone)]
 pub enum SkkIncomingEvent {
     /// 0
@@ -16,7 +12,6 @@ pub enum SkkIncomingEvent {
     Server,
 }
 
-#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone)]
 pub enum SkkOutGoingEvent {
     Convert(Option<String>),

@@ -2028,7 +2028,6 @@ dependencies = [
  "futures",
  "once_cell",
  "reqwest",
- "serde",
  "thiserror",
  "tokio",
  "tokio-stream",

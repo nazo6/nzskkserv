@@ -1,20 +1,16 @@
 use once_cell::sync::OnceCell;
-#[cfg(feature = "serialize")]
-use serde::{Deserialize, Serialize};
 
 use crate::{
     server::interface::{SkkIncomingEvent, SkkOutGoingEvent},
     Error,
 };
 
-#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone)]
 pub struct LogEntry {
     pub event: LogEvent,
     pub level: u8,
 }
 
-#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone)]
 pub enum LogEvent {
     Incoming(SkkIncomingEvent),

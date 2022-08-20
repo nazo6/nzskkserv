@@ -1,8 +1,9 @@
+/// TCPのリクエストをFramedにデコードしたり逆にSKKサーバの形式にエンコードしたりするやつ
 use bytes::BytesMut;
 use encoding_rs::{EUC_JP, UTF_8};
 use tokio_util::codec::{Decoder, Encoder};
 
-use crate::{info, Error};
+use crate::Error;
 use crate::{
     log::{log, LogEntry, LogEvent},
     Encoding,
@@ -49,6 +50,7 @@ impl Decoder for SkkCodec {
                 '0' => Ok(Some(SkkIncomingEvent::Disconnect)),
                 '1' => {
                     let content: Option<&str>;
+                    // SKKクライアントによって" \n"で終わるものがあったり" "で終わるものがあったりする
                     if str.ends_with(" \n") {
                         content = str.get(1..str.len() - 2);
                     } else if str.ends_with(' ') {
