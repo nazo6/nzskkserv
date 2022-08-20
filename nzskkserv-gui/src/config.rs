@@ -39,20 +39,24 @@ pub(crate) struct Config {
     pub dicts: Vec<DictConf>,
 }
 
-pub(crate) const DEFAULT_CONFIG: Config = Config {
-    enable_google_cgi: false,
-    server_encoding: Encoding::Utf8,
-    dicts: Vec::new(),
-    port: Some(1178),
-};
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            enable_google_cgi: false,
+            server_encoding: Encoding::Utf8,
+            dicts: Vec::new(),
+            port: Some(1178),
+        }
+    }
+}
 
 pub(crate) async fn load_config() -> Result<Config> {
     let config = match read_config().await {
         Ok(config) => config,
         Err(_e) => {
             info!("Could not read config. Creating new one...");
-            write_config(&DEFAULT_CONFIG).await?;
-            DEFAULT_CONFIG
+            write_config(&Config::default()).await?;
+            Config::default()
         }
     };
     Ok(config)
