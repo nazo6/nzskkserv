@@ -18,7 +18,7 @@ pub enum SkkIncomingEvent {
 
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone)]
-pub enum SkkOutcomingEvent {
+pub enum SkkOutGoingEvent {
     Convert(Option<String>),
     Version,
     Hostname,

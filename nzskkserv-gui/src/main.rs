@@ -1,4 +1,4 @@
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] 
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use anyhow::Result;
 use config::load_config;
@@ -27,6 +27,7 @@ enum Message {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    info!("App started");
     // Setup logger
     let server_logger = ServerLogger {
         global_logger: &LOGGER,
@@ -51,7 +52,7 @@ async fn main() -> Result<()> {
     .unwrap();
 
     // Load config and dicts
-    let config = load_config().await;
+    let config = load_config().await?;
     let encoding = match config.server_encoding {
         config::Encoding::Utf8 => nzskkserv_core::Encoding::Utf8,
         config::Encoding::Eucjp => nzskkserv_core::Encoding::Eucjp,
@@ -66,13 +67,15 @@ async fn main() -> Result<()> {
     // Setup server
     let server = nzskkserv_core::Server::new(LOCALHOST, config.port.unwrap_or(1178), server_config);
     let server = Arc::new(server);
-    let serv2 = Arc::clone(&server);
-    tokio::task::spawn(async move {
-        let res = serv2.start().await;
-        if let Err(error) = res {
-            LOGGER.log(format!("{}", error));
-        }
-    });
+    {
+        let server = Arc::clone(&server);
+        tokio::task::spawn(async move {
+            let res = server.start().await;
+            if let Err(error) = res {
+                error!("{}", error);
+            }
+        });
+    }
 
     // Setup window
     let is_hidden = Arc::new(Mutex::new(true));

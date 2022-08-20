@@ -3,7 +3,6 @@
 use std::net::IpAddr;
 use std::sync::Mutex;
 
-use log::info;
 use tokio::net::TcpListener;
 use tokio::sync::broadcast;
 use tokio::sync::watch;
@@ -12,6 +11,7 @@ mod codec;
 pub mod interface;
 mod process;
 
+use crate::info;
 use crate::Error;
 use process::process;
 

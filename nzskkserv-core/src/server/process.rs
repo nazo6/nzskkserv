@@ -1,15 +1,15 @@
 use futures::SinkExt;
-use log::{debug, info, warn};
 use tokio::net::TcpStream;
 use tokio_stream::StreamExt;
 use tokio_util::codec::Framed;
 
 use crate::{
+    info,
     server::{
         codec::SkkCodec,
-        interface::{SkkIncomingEvent, SkkOutcomingEvent},
+        interface::{SkkIncomingEvent, SkkOutGoingEvent},
     },
-    Error,
+    warn, Error,
 };
 
 use super::ServerConfig;
@@ -26,22 +26,22 @@ pub(crate) async fn process(stream: TcpStream, config: ServerConfig) -> Result<(
                     SkkIncomingEvent::Convert(str) => {
                         let candidates = convert(&str, &config).await;
 
-                        framed.send(SkkOutcomingEvent::Convert(candidates)).await
+                        framed.send(SkkOutGoingEvent::Convert(candidates)).await
                     }
-                    SkkIncomingEvent::Server => framed.send(SkkOutcomingEvent::Server).await,
-                    SkkIncomingEvent::Version => framed.send(SkkOutcomingEvent::Version).await,
-                    SkkIncomingEvent::Hostname => framed.send(SkkOutcomingEvent::Hostname).await,
+                    SkkIncomingEvent::Server => framed.send(SkkOutGoingEvent::Server).await,
+                    SkkIncomingEvent::Version => framed.send(SkkOutGoingEvent::Version).await,
+                    SkkIncomingEvent::Hostname => framed.send(SkkOutGoingEvent::Hostname).await,
                 };
 
                 match result {
                     Ok(()) => {}
                     Err(err) => {
-                        warn!("Error occurred while processing incoming data: {:?}", err)
+                        warn!("Error occurred while processing incoming data: {:?}", err);
                     }
                 }
             }
             Err(err) => {
-                warn!("Error occurred while processing: {:?}", err)
+                warn!("Error occurred while processing: {:?}", err);
             }
         }
     }
@@ -96,7 +96,7 @@ async fn fetch_google_cgi(query: &str) -> Result<String, Error> {
     url.push(',');
     let result = reqwest::get(url).await?.json::<GoogleCgiResponse>().await?;
 
-    debug!("Got response from google cgi server: {:?}", result);
+    info!("Got response from google cgi server: {:?}", result);
 
     let candidates = &result.get(0).ok_or(Error::GoogleCgiParse)?.1;
 

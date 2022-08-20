@@ -1,15 +1,14 @@
 use bytes::BytesMut;
 use encoding_rs::{EUC_JP, UTF_8};
-use log::info;
 use tokio_util::codec::{Decoder, Encoder};
 
-use crate::Error;
+use crate::{info, Error};
 use crate::{
     log::{log, LogEntry, LogEvent},
     Encoding,
 };
 
-use super::interface::{SkkIncomingEvent, SkkOutcomingEvent};
+use super::interface::{SkkIncomingEvent, SkkOutGoingEvent};
 
 pub(crate) struct SkkCodec {
     encoding: Encoding,
@@ -82,17 +81,17 @@ impl Decoder for SkkCodec {
     }
 }
 
-impl Encoder<SkkOutcomingEvent> for SkkCodec {
+impl Encoder<SkkOutGoingEvent> for SkkCodec {
     type Error = Error;
 
-    fn encode(&mut self, event: SkkOutcomingEvent, dst: &mut BytesMut) -> Result<(), Self::Error> {
+    fn encode(&mut self, event: SkkOutGoingEvent, dst: &mut BytesMut) -> Result<(), Self::Error> {
         log(LogEntry {
-            event: LogEvent::Outcoming(event.clone()),
+            event: LogEvent::OutGoing(event.clone()),
             level: 0,
         });
 
         let text = match event {
-            SkkOutcomingEvent::Convert(candidates) => match candidates {
+            SkkOutGoingEvent::Convert(candidates) => match candidates {
                 Some(candidates) => {
                     let mut str = "1".to_string();
                     str.push_str(&candidates);
@@ -102,11 +101,10 @@ impl Encoder<SkkOutcomingEvent> for SkkCodec {
                 }
                 None => "4\n".to_string(),
             },
-            SkkOutcomingEvent::Server => "4\n".to_string(),
-            SkkOutcomingEvent::Version => format!("nzskkserv/{} ", env!("CARGO_PKG_VERSION")),
-            SkkOutcomingEvent::Hostname => " ".to_string(),
+            SkkOutGoingEvent::Server => "4\n".to_string(),
+            SkkOutGoingEvent::Version => format!("nzskkserv/{} ", env!("CARGO_PKG_VERSION")),
+            SkkOutGoingEvent::Hostname => " ".to_string(),
         };
-        info!("Response: {:?}", &text);
 
         let (bytes, _, _) = match self.encoding {
             Encoding::Utf8 => UTF_8.encode(&text),

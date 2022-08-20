@@ -14,8 +14,6 @@ const LOCALHOST: IpAddr = IpAddr::V4(Ipv4Addr::LOCALHOST);
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    simple_logger::init_with_level(log::Level::Debug).unwrap();
-
     let config = load_config().await;
 
     let encoding = match config.server_encoding {

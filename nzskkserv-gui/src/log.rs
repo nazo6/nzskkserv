@@ -14,9 +14,15 @@ impl Logger for ServerLogger {
 }
 
 #[derive(Clone)]
+pub(crate) struct AppLogEntry {
+    pub level: u8,
+    pub message: String,
+}
+
+#[derive(Clone)]
 pub(crate) enum GlobalLogEntry {
     ServerLog(LogEntry),
-    AppLog(String),
+    AppLog(AppLogEntry),
 }
 
 pub(crate) struct GlobalLogger {
@@ -30,11 +36,11 @@ impl GlobalLogger {
             .unwrap()
             .push(GlobalLogEntry::ServerLog(entry));
     }
-    pub(crate) fn log(&self, entry: String) {
+    pub(crate) fn log(&self, level: u8, message: String) {
         self.logs
             .lock()
             .unwrap()
-            .push(GlobalLogEntry::AppLog(entry));
+            .push(GlobalLogEntry::AppLog(AppLogEntry { level, message }));
     }
     pub(crate) fn get_logs(&self) -> Vec<GlobalLogEntry> {
         (*self.logs.lock().unwrap()).clone()
@@ -44,3 +50,37 @@ impl GlobalLogger {
 pub(crate) static LOGGER: Lazy<GlobalLogger> = Lazy::new(|| GlobalLogger {
     logs: Arc::new(Mutex::new(Vec::new())),
 });
+
+pub(crate) fn log(level: u8, message: String) {
+    LOGGER.log(level, message);
+}
+
+#[macro_export]
+macro_rules! log_msg {
+    ($lvl:expr, $arg:expr) => {
+        $crate::log::log($lvl, $arg.to_string())
+    };
+    ($lvl:expr, $arg:expr, $( $format_args:expr ),*) => {
+        $crate::log::log($lvl, format!($arg, $( $format_args ),* ))
+    };
+}
+
+#[macro_export(local_inner_macros)]
+macro_rules! info {
+    ($( $args:expr ),*) => {
+        log_msg!(0, $( $args ),*)
+    };
+}
+#[macro_export(local_inner_macros)]
+macro_rules! warn {
+    ($( $args:expr ),*) => {
+        log_msg!(0, $( $args ),*)
+    };
+}
+
+#[macro_export(local_inner_macros)]
+macro_rules! error {
+    ($( $args:expr ),*) => {
+        log_msg!(0, $( $args ),*)
+    };
+}

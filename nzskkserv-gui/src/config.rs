@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 use tokio::fs;
 
 use anyhow::Context;
-use anyhow::Error;
+use anyhow::Result;
+
+use crate::info;
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub enum Encoding {
@@ -24,7 +26,7 @@ pub struct DictUrl {
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(untagged)]
-pub enum Dict {
+pub enum DictConf {
     DictPath(DictPath),
     DictUrl(DictUrl),
 }
@@ -34,7 +36,7 @@ pub(crate) struct Config {
     pub enable_google_cgi: bool,
     pub server_encoding: Encoding,
     pub port: Option<u16>,
-    pub dicts: Vec<Dict>,
+    pub dicts: Vec<DictConf>,
 }
 
 pub(crate) const DEFAULT_CONFIG: Config = Config {
@@ -44,17 +46,19 @@ pub(crate) const DEFAULT_CONFIG: Config = Config {
     port: Some(1178),
 };
 
-pub(crate) async fn load_config() -> Config {
-    match read_config().await {
-        Ok(data) => data,
+pub(crate) async fn load_config() -> Result<Config> {
+    let config = match read_config().await {
+        Ok(config) => config,
         Err(e) => {
-            write_config(&DEFAULT_CONFIG).await.unwrap();
+            info!("Could not read config. Creating new one...");
+            write_config(&DEFAULT_CONFIG).await?;
             DEFAULT_CONFIG
         }
-    }
+    };
+    Ok(config)
 }
 
-pub(crate) async fn read_config() -> Result<Config, Error> {
+pub(crate) async fn read_config() -> Result<Config> {
     let project_dirs = ProjectDirs::from("", "", "nzskkserv").context("No project dirs")?;
     let mut config_path = project_dirs.config_dir().to_path_buf();
     fs::create_dir_all(&config_path).await?;
@@ -65,7 +69,7 @@ pub(crate) async fn read_config() -> Result<Config, Error> {
     Ok(config)
 }
 
-pub(crate) async fn write_config(config: &Config) -> Result<(), Error> {
+pub(crate) async fn write_config(config: &Config) -> Result<()> {
     let project_dirs =
         ProjectDirs::from("", "", "nzskkserv").context("Could not find config dir.")?;
     let mut config_file_path = project_dirs.config_dir().to_path_buf();

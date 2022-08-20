@@ -2,11 +2,12 @@ use std::{collections::HashMap, path::PathBuf};
 
 use directories::ProjectDirs;
 use encoding_rs::{EUC_JP, UTF_8};
+use nzskkserv_core::Dict;
 
-use crate::config::{self, Dict, DictPath, DictUrl, Encoding};
+use crate::config::{DictConf, DictPath, DictUrl, Encoding};
 use anyhow::{Context, Error};
 
-pub(crate) async fn load_dicts(dicts: Vec<config::Dict>) -> Vec<nzskkserv_core::Dict> {
+pub(crate) async fn load_dicts(dicts: Vec<DictConf>) -> Vec<Dict> {
     let mut dicts_data: Vec<nzskkserv_core::Dict> = Vec::new();
     for dict in dicts {
         let dict_data = get_dict_data(dict).await;
@@ -30,7 +31,7 @@ fn get_dict_cache_path(dict_url: &DictUrl) -> Result<DictPath, Error> {
     })
 }
 
-async fn get_dict(dict_path: &DictPath) -> Result<nzskkserv_core::Dict, Error> {
+async fn get_dict(dict_path: &DictPath) -> Result<Dict, Error> {
     let dict_bin = tokio::fs::read(&dict_path.path).await?;
     let (dict_str, _, _) = match &dict_path.encoding {
         Some(encoding) => match encoding {
@@ -56,11 +57,11 @@ async fn get_dict(dict_path: &DictPath) -> Result<nzskkserv_core::Dict, Error> {
 /// If Dict::DictUrl is passed, this function tries to read data from cache.
 /// If cache is not available, error will be returned
 pub(crate) async fn get_dict_data(
-    dict: crate::config::Dict,
+    dict: crate::config::DictConf,
 ) -> Result<nzskkserv_core::Dict, Error> {
     let dict_path = match dict {
-        Dict::DictPath(dict_path) => dict_path,
-        Dict::DictUrl(dict_url) => cache_online_dict(&dict_url).await?,
+        DictConf::DictPath(dict_path) => dict_path,
+        DictConf::DictUrl(dict_url) => cache_online_dict(&dict_url).await?,
     };
     get_dict(&dict_path).await
 }
