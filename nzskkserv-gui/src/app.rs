@@ -71,7 +71,7 @@ impl App {
 }
 
 impl eframe::App for App {
-    fn on_exit_event(&mut self) -> bool {
+    fn on_close_event(&mut self) -> bool {
         *self.is_hidden.lock().unwrap() = true;
         *self.is_exit.lock().unwrap()
     }
