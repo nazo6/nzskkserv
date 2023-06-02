@@ -35,7 +35,8 @@ async fn main() -> Result<()> {
     nzskkserv_core::log::set_logger(server_logger)?;
 
     // Setup task tray
-    let mut tray = TrayItem::new("nzskkserv", "tray-icon").unwrap();
+    let mut tray =
+        TrayItem::new("nzskkserv", tray_item::IconSource::Resource("tray-icon")).unwrap();
 
     let (mes_sender, mes_reciver) = unbounded();
     let (start_send, start_recv) = unbounded::<()>();
@@ -123,7 +124,8 @@ async fn main() -> Result<()> {
                     Arc::clone(&server),
                 ))
             }),
-        );
+        )
+        .unwrap();
         println!("exit")
     }
 

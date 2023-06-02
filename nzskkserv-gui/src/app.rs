@@ -253,5 +253,5 @@ static AUTO_LAUNCH: Lazy<AutoLaunch> = Lazy::new(|| {
     let name = "nzskkserv-gui";
     let path = std::env::current_exe().unwrap();
     let path = path.to_str().unwrap();
-    AutoLaunch::new(name, path)
+    AutoLaunch::new(name, path, &[] as &[&str])
 });
