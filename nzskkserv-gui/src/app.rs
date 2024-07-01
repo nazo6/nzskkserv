@@ -5,6 +5,7 @@ use eframe::{
     egui::{self, RichText},
     epaint::{Color32, FontFamily},
 };
+use egui::ViewportCommand;
 use nzskkserv_core::{
     log::LogEvent,
     server::interface::{SkkIncomingEvent, SkkOutGoingEvent},
@@ -71,11 +72,6 @@ impl App {
 }
 
 impl eframe::App for App {
-    fn on_close_event(&mut self) -> bool {
-        *self.is_hidden.lock().unwrap() = true;
-        *self.is_exit.lock().unwrap()
-    }
-
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         match self.ui_state.run_mode {
             RunMode::Continuous => {
@@ -113,13 +109,16 @@ impl eframe::App for App {
             }
         });
         if *self.is_hidden.lock().unwrap() {
-            frame.set_visible(false);
+            ctx.send_viewport_cmd(ViewportCommand::Visible(false));
         } else {
-            frame.set_visible(true);
+            ctx.send_viewport_cmd(ViewportCommand::Visible(true));
         }
 
         if *self.is_exit.lock().unwrap() {
-            frame.quit();
+            ctx.send_viewport_cmd(ViewportCommand::Close)
+        } else if ctx.input(|i| i.viewport().close_requested()) {
+            ctx.send_viewport_cmd(ViewportCommand::CancelClose);
+            ctx.send_viewport_cmd(ViewportCommand::Visible(false));
         }
     }
 }

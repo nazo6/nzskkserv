@@ -1,2 +1,3 @@
 [workspace]
 members = ["nzskkserv-core", "nzskkserv-cli", "nzskkserv-gui"]
+resolver = "2"
