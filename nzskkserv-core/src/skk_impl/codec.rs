@@ -1,31 +1,31 @@
-/// TCPのリクエストをFramedにデコードしたり逆にSKKサーバの形式にエンコードしたりするやつ
 use bytes::BytesMut;
 use encoding_rs::{EUC_JP, UTF_8};
 use tokio_util::codec::{Decoder, Encoder};
 
+use crate::handler::Handler;
+use crate::Encoding;
 use crate::Error;
-use crate::{
-    log::{log, LogEntry, LogEvent},
-    Encoding,
-};
 
-use super::interface::{SkkIncomingEvent, SkkOutGoingEvent};
+use super::SkkIncomingEvent;
+use super::SkkOutGoingEvent;
 
-pub(crate) struct SkkCodec {
+pub(crate) struct SkkCodec<'a, H: Handler> {
     encoding: Encoding,
+    handler: &'a H,
 }
 
-impl SkkCodec {
-    pub fn new(encoding: &Encoding) -> SkkCodec {
+impl<'a, H: Handler> SkkCodec<'a, H> {
+    pub fn new(encoding: &Encoding, handler: &'a H) -> Self {
         SkkCodec {
             encoding: encoding.clone(),
+            handler,
         }
     }
 }
 
-impl Decoder for SkkCodec {
+impl<'a, H: Handler> Decoder for SkkCodec<'a, H> {
     type Item = SkkIncomingEvent;
-    type Error = Error;
+    type Error = Error<H::Error>;
     fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
         let src = if !src.is_empty() {
             let len = src.len();
@@ -69,29 +69,15 @@ impl Decoder for SkkCodec {
                 _ => Err(Error::InvalidIncomingCommand(str)),
             };
 
-            log(LogEntry {
-                event: match &data {
-                    Ok(Some(event)) => LogEvent::Incoming(event.clone()),
-                    Ok(None) => unreachable!(),
-                    Err(err) => LogEvent::Message(err.to_string()),
-                },
-                level: 0,
-            });
-
             data
         }
     }
 }
 
-impl Encoder<SkkOutGoingEvent> for SkkCodec {
-    type Error = Error;
+impl<'a, H: Handler> Encoder<SkkOutGoingEvent> for SkkCodec<'a, H> {
+    type Error = Error<H::Error>;
 
     fn encode(&mut self, event: SkkOutGoingEvent, dst: &mut BytesMut) -> Result<(), Self::Error> {
-        log(LogEntry {
-            event: LogEvent::OutGoing(event.clone()),
-            level: 0,
-        });
-
         let text = match event {
             SkkOutGoingEvent::Convert(candidates) => match candidates {
                 Some(candidates) => {
@@ -104,8 +90,11 @@ impl Encoder<SkkOutGoingEvent> for SkkCodec {
                 None => "4\n".to_string(),
             },
             SkkOutGoingEvent::Server => "4\n".to_string(),
-            SkkOutGoingEvent::Version => format!("nzskkserv/{} ", env!("CARGO_PKG_VERSION")),
-            SkkOutGoingEvent::Hostname => " ".to_string(),
+            SkkOutGoingEvent::Version => H::SERVER_VERSION.to_string(),
+            SkkOutGoingEvent::Hostname => self
+                .handler
+                .get_hostname()
+                .map_err(|e| Error::HandlerError(e))?,
         };
 
         let (bytes, _, _) = match self.encoding {

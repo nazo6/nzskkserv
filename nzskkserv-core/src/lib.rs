@@ -1,9 +1,13 @@
 pub mod error;
-pub mod log;
-pub mod server;
+pub mod handler;
+mod skk_impl;
+
+use std::net::IpAddr;
 
 pub use error::Error;
-pub use server::Server;
+use handler::Handler;
+use log::{info, warn};
+use tokio::net::TcpListener;
 
 #[derive(Clone)]
 pub enum Encoding {
@@ -11,4 +15,37 @@ pub enum Encoding {
     Eucjp,
 }
 
-pub type Dict = std::collections::HashMap<String, String>;
+pub struct ServerConfig {
+    pub encoding: Encoding,
+    pub address: IpAddr,
+    pub port: u16,
+}
+
+pub struct Server<H: Handler> {
+    config: ServerConfig,
+    handler: H,
+}
+
+impl<H: Handler> Server<H> {
+    pub fn new(config: ServerConfig, handler: H) -> Self {
+        Server { config, handler }
+    }
+
+    pub async fn start(&mut self) -> Result<(), Error<H::Error>> {
+        let s = &*self;
+
+        info!("Starting server: {}:{}", s.config.address, s.config.port);
+
+        let listener = TcpListener::bind((self.config.address, self.config.port)).await?;
+
+        loop {
+            let (stream, socket) = listener.accept().await?;
+
+            info!("Socket connected: {}:{}", socket.ip(), socket.port());
+
+            if let Err(e) = skk_impl::process_skk(stream, &s.config, &s.handler).await {
+                warn!("Error: {:?}", e);
+            };
+        }
+    }
+}

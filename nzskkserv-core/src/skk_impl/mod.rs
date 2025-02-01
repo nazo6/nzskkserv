@@ -1,21 +1,44 @@
+mod codec;
+
+use codec::SkkCodec;
 use futures::SinkExt;
+use log::{info, warn};
 use tokio::net::TcpStream;
 use tokio_stream::StreamExt;
 use tokio_util::codec::Framed;
 
-use crate::{
-    info,
-    server::{
-        codec::SkkCodec,
-        interface::{SkkIncomingEvent, SkkOutGoingEvent},
-    },
-    warn, Error,
-};
+use crate::{handler::Handler, Error};
+
+#[derive(Debug, Clone)]
+pub enum SkkIncomingEvent {
+    /// 0
+    Disconnect,
+    /// 1
+    Convert(String),
+    /// 2
+    Version,
+    /// 3
+    Hostname,
+    /// 4
+    Server,
+}
+
+#[derive(Debug, Clone)]
+pub enum SkkOutGoingEvent {
+    Convert(Option<String>),
+    Version,
+    Hostname,
+    Server,
+}
 
 use super::ServerConfig;
 
-pub(crate) async fn process(stream: TcpStream, config: ServerConfig) -> Result<(), Error> {
-    let mut framed = Framed::new(stream, SkkCodec::new(&config.encoding));
+pub(crate) async fn process_skk<H: Handler>(
+    stream: TcpStream,
+    config: &ServerConfig,
+    handler: &H,
+) -> Result<(), Error<H::Error>> {
+    let mut framed = Framed::new(stream, SkkCodec::new(&config.encoding, handler));
     while let Some(message) = framed.next().await {
         match message {
             Ok(data) => {
@@ -24,7 +47,10 @@ pub(crate) async fn process(stream: TcpStream, config: ServerConfig) -> Result<(
                         break;
                     }
                     SkkIncomingEvent::Convert(str) => {
-                        let candidates = convert(&str, &config).await;
+                        let Ok(candidates) = handler.resolve_word(&str).await else {
+                            continue;
+                        };
+                        let candidates = candidates.and_then(format_candidates_str);
 
                         framed.send(SkkOutGoingEvent::Convert(candidates)).await
                     }
@@ -49,21 +75,8 @@ pub(crate) async fn process(stream: TcpStream, config: ServerConfig) -> Result<(
 
     Ok(())
 }
-async fn convert(str: &str, config: &ServerConfig) -> Option<String> {
-    let mut candidates: Vec<String> = Vec::new();
-    for dict in &config.dicts {
-        let value = dict.get(str);
-        if let Some(value) = value {
-            candidates.push(value.to_string())
-        }
-    }
 
-    if candidates.is_empty() && config.enable_google_cgi {
-        if let Ok(candidate) = fetch_google_cgi(str).await {
-            candidates.push(candidate);
-        }
-    }
-
+fn format_candidates_str(candidates: Vec<String>) -> Option<String> {
     let mut candidates_str = "/".to_string();
     for mut candidate in candidates {
         if candidate.is_empty() {
@@ -87,23 +100,4 @@ async fn convert(str: &str, config: &ServerConfig) -> Option<String> {
     } else {
         Some(candidates_str)
     }
-}
-async fn fetch_google_cgi(query: &str) -> Result<String, Error> {
-    type GoogleCgiResponse = Vec<(String, Vec<String>)>;
-    let mut url = "http://www.google.com/transliterate?langpair=ja-Hira|ja&text=".to_string();
-    url.push_str(&urlencoding::encode(query));
-    url.push(',');
-    let result = reqwest::get(url).await?.json::<GoogleCgiResponse>().await?;
-
-    info!("Converted by google cgi server: {:?}", result);
-
-    let candidates = &result.get(0).ok_or(Error::GoogleCgiParse)?.1;
-
-    let mut candidate_str = "/".to_string();
-    candidates.iter().for_each(|candidate| {
-        candidate_str.push_str(candidate);
-        candidate_str.push('/')
-    });
-
-    Ok(candidate_str)
 }
