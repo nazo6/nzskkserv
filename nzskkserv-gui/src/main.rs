@@ -2,9 +2,15 @@
 
 use anyhow::Result;
 use gpui::*;
-use ui::init;
+use ui::{button::Button, init};
 
-actions!(a, ["Test"]);
+struct Root {}
+
+impl Render for Root {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<'_, Self>) -> impl IntoElement {
+        div().child(Button::new("0").label("Test"))
+    }
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -13,17 +19,8 @@ async fn main() -> Result<()> {
     app.run(move |cx| {
         init(cx);
 
-        cx.set_menus(vec![
-            Menu {
-                name: "Edit".into(),
-                items: vec![MenuItem::action("AAA", Test)],
-            },
-            Menu {
-                name: "Window".into(),
-                items: vec![],
-            },
-        ]);
-        cx.activate(true);
+        cx.open_window(WindowOptions::default(), |_, cx| cx.new(|_| Root {}))
+            .unwrap();
     });
 
     Ok(())
