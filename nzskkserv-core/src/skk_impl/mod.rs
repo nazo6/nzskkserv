@@ -62,12 +62,12 @@ pub(crate) async fn process_skk<H: Handler>(
                 match result {
                     Ok(()) => {}
                     Err(err) => {
-                        warn!("Error occurred while processing incoming data: {:?}", err);
+                        warn!("Error occurred while processing incoming data: {}", err);
                     }
                 }
             }
             Err(err) => {
-                warn!("Error occurred while processing: {:?}", err);
+                warn!("Error occurred while processing: {}", err);
             }
         }
     }

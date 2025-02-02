@@ -1,6 +1,8 @@
+use std::fmt::Display;
+
 #[allow(async_fn_in_trait)]
 pub trait Handler: Sync {
-    type Error: std::error::Error;
+    type Error: Display;
 
     const SERVER_VERSION: &'static str;
 

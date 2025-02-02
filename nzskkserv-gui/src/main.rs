@@ -1,27 +1,18 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use anyhow::Result;
-use gpui::*;
-use ui::{button::Button, init};
 
-struct Root {}
-
-impl Render for Root {
-    fn render(&mut self, window: &mut Window, cx: &mut Context<'_, Self>) -> impl IntoElement {
-        div().child(Button::new("0").label("Test"))
-    }
-}
+mod app;
+mod config;
+mod server;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let app = Application::new();
+    let config = config::load_config().await?;
 
-    app.run(move |cx| {
-        init(cx);
+    server::create_server(config).await;
 
-        cx.open_window(WindowOptions::default(), |_, cx| cx.new(|_| Root {}))
-            .unwrap();
-    });
+    app::start();
 
     Ok(())
 }

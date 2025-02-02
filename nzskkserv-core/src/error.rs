@@ -2,7 +2,7 @@ use bytes::Bytes;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-pub enum Error<HandlerError: std::error::Error> {
+pub enum Error<HandlerError: std::fmt::Display> {
     #[error("Invalid incoming command: {0}")]
     InvalidIncomingCommand(String),
     #[error("Error occurred while decoding")]

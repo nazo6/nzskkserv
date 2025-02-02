@@ -9,6 +9,14 @@ nzskkserv-core = { path = "../nzskkserv-core", version = "0.1" }
 tokio = { workspace = true, features = ["full"] }
 ui = { git = "https://github.com/longbridge/gpui-component" }
 gpui = { git = "https://github.com/huacnlee/zed.git", branch = "webview" }
+encoding_rs = "0.8.35"
+directories = "6.0.0"
+url = { version = "2.5.4", features = ["serde"] }
+reqwest = "0.12.12"
+sanitize-filename = "0.6.0"
+log = "0.4.25"
+serde = "1.0.217"
+toml = "0.8.19"
 
 [build-dependencies]
 windres = "0.2"

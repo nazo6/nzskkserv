@@ -44,7 +44,7 @@ impl<H: Handler> Server<H> {
             info!("Socket connected: {}:{}", socket.ip(), socket.port());
 
             if let Err(e) = skk_impl::process_skk(stream, &s.config, &s.handler).await {
-                warn!("Error: {:?}", e);
+                warn!("Error: {}", e);
             };
         }
     }

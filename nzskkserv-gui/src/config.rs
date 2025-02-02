@@ -1,11 +1,13 @@
+use std::path::PathBuf;
+
 use directories::ProjectDirs;
+use log::info;
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 
 use anyhow::Context;
 use anyhow::Result;
-
-use crate::info;
+use url::Url;
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub enum Encoding {
@@ -13,22 +15,26 @@ pub enum Encoding {
     Eucjp,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
-pub struct DictPath {
-    pub path: String,
-    pub encoding: Option<Encoding>,
-}
-#[derive(Deserialize, Serialize, Debug, Clone)]
-pub struct DictUrl {
-    pub url: String,
-    pub encoding: Option<Encoding>,
+impl From<Encoding> for nzskkserv_core::Encoding {
+    fn from(value: Encoding) -> Self {
+        match value {
+            Encoding::Utf8 => nzskkserv_core::Encoding::Utf8,
+            Encoding::Eucjp => nzskkserv_core::Encoding::Eucjp,
+        }
+    }
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(untagged)]
-pub enum DictConf {
-    DictPath(DictPath),
-    DictUrl(DictUrl),
+pub enum DictPath {
+    File(PathBuf),
+    Url(Url),
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct DictDef {
+    pub path: DictPath,
+    pub encoding: Option<Encoding>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -36,7 +42,7 @@ pub(crate) struct Config {
     pub enable_google_cgi: bool,
     pub server_encoding: Encoding,
     pub port: Option<u16>,
-    pub dicts: Vec<DictConf>,
+    pub dicts: Vec<DictDef>,
 }
 
 impl Default for Config {
@@ -62,7 +68,7 @@ pub(crate) async fn load_config() -> Result<Config> {
     Ok(config)
 }
 
-pub(crate) async fn read_config() -> Result<Config> {
+async fn read_config() -> Result<Config> {
     let project_dirs = ProjectDirs::from("", "", "nzskkserv").context("No project dirs")?;
     let mut config_path = project_dirs.config_dir().to_path_buf();
     fs::create_dir_all(&config_path).await?;
