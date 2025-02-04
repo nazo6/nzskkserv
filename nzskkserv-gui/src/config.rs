@@ -26,18 +26,18 @@ impl From<Encoding> for nzskkserv_core::Encoding {
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(untagged)]
-pub enum DictPath {
-    File(PathBuf),
-    Url(Url),
+pub enum DictDef {
+    File {
+        path: PathBuf,
+        encoding: Option<Encoding>,
+    },
+    Url {
+        url: Url,
+        encoding: Option<Encoding>,
+    },
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
-pub struct DictDef {
-    pub path: DictPath,
-    pub encoding: Option<Encoding>,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
 pub(crate) struct Config {
     pub enable_google_cgi: bool,
     pub server_encoding: Encoding,
@@ -56,26 +56,22 @@ impl Default for Config {
     }
 }
 
-pub(crate) async fn load_config() -> Result<Config> {
-    let config = match read_config().await {
-        Ok(config) => config,
-        Err(_e) => {
-            info!("Could not read config. Creating new one...");
-            write_config(&Config::default()).await?;
-            Config::default()
-        }
-    };
-    Ok(config)
-}
-
-async fn read_config() -> Result<Config> {
+pub(super) async fn load_config() -> Result<Config> {
     let project_dirs = ProjectDirs::from("", "", "nzskkserv").context("No project dirs")?;
     let mut config_path = project_dirs.config_dir().to_path_buf();
-    fs::create_dir_all(&config_path).await?;
     config_path.push("config.toml");
 
-    let config_file = tokio::fs::read_to_string(&config_path).await?;
-    let config: Config = toml::from_str(&config_file)?;
+    info!("Reading config from {:?}", config_path);
+
+    let config = if fs::metadata(&config_path).await.is_ok() {
+        let config_file = tokio::fs::read_to_string(&config_path).await?;
+        toml::from_str(&config_file)?
+    } else {
+        info!("Config file not found. Creating new one...");
+        write_config(&Config::default()).await?;
+        Config::default()
+    };
+
     Ok(config)
 }
 

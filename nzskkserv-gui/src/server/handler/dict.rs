@@ -2,12 +2,12 @@ use std::{collections::HashMap, path::PathBuf};
 
 use directories::ProjectDirs;
 use encoding_rs::{EUC_JP, UTF_8};
-use log::warn;
+use log::{info, warn};
 use url::Url;
 
 use anyhow::{Context, Error};
 
-use crate::config::{DictDef, DictPath, Encoding};
+use crate::config::{DictDef, Encoding};
 
 pub type Dicts = HashMap<String, Vec<String>>;
 
@@ -21,6 +21,12 @@ pub(crate) async fn load_dicts(dicts: Vec<DictDef>) -> Dicts {
         }
     }
 
+    info!(
+        "Loaded {} dicts, {} items",
+        dicts_data.len(),
+        dicts_data.iter().map(|d| d.len()).sum::<usize>()
+    );
+
     let mut dicts_map = HashMap::new();
     for dict_data in dicts_data {
         for (key, value) in dict_data {
@@ -31,12 +37,10 @@ pub(crate) async fn load_dicts(dicts: Vec<DictDef>) -> Dicts {
     dicts_map
 }
 
-async fn get_dict_data(
-    DictDef { path, encoding }: DictDef,
-) -> Result<Vec<(String, String)>, Error> {
-    let dict_path = match path {
-        DictPath::File(dict_path) => dict_path,
-        DictPath::Url(dict_url) => cache_online_dict(dict_url).await?,
+async fn get_dict_data(dict_def: DictDef) -> Result<Vec<(String, String)>, Error> {
+    let (dict_path, encoding) = match dict_def {
+        DictDef::File { path, encoding } => (path, encoding),
+        DictDef::Url { url, encoding } => (cache_online_dict(url).await?, encoding),
     };
 
     let dict_bin = tokio::fs::read(&dict_path).await?;

@@ -4,3 +4,7 @@ resolver = "2"
 
 [workspace.dependencies]
 tokio = { version = "1.43.0" }
+
+
+[patch."https://github.com/huacnlee/zed.git"]
+gpui = { git = "https://github.com/nazo6/zed.git", branch = "nazo6-custom" }
