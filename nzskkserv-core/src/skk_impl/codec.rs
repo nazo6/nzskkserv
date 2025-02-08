@@ -23,7 +23,7 @@ impl<'a, H: Handler> SkkCodec<'a, H> {
     }
 }
 
-impl<'a, H: Handler> Decoder for SkkCodec<'a, H> {
+impl<H: Handler> Decoder for SkkCodec<'_, H> {
     type Item = SkkIncomingEvent;
     type Error = Error<H::Error>;
     fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
@@ -74,7 +74,7 @@ impl<'a, H: Handler> Decoder for SkkCodec<'a, H> {
     }
 }
 
-impl<'a, H: Handler> Encoder<SkkOutGoingEvent> for SkkCodec<'a, H> {
+impl<H: Handler> Encoder<SkkOutGoingEvent> for SkkCodec<'_, H> {
     type Error = Error<H::Error>;
 
     fn encode(&mut self, event: SkkOutGoingEvent, dst: &mut BytesMut) -> Result<(), Self::Error> {
@@ -91,10 +91,9 @@ impl<'a, H: Handler> Encoder<SkkOutGoingEvent> for SkkCodec<'a, H> {
             },
             SkkOutGoingEvent::Server => "4\n".to_string(),
             SkkOutGoingEvent::Version => H::SERVER_VERSION.to_string(),
-            SkkOutGoingEvent::Hostname => self
-                .handler
-                .get_hostname()
-                .map_err(|e| Error::HandlerError(e))?,
+            SkkOutGoingEvent::Hostname => {
+                self.handler.get_hostname().map_err(Error::HandlerError)?
+            }
         };
 
         let (bytes, _, _) = match self.encoding {

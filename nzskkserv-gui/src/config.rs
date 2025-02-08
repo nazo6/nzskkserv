@@ -9,7 +9,7 @@ use anyhow::Context;
 use anyhow::Result;
 use url::Url;
 
-#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub enum Encoding {
     Utf8,
     Eucjp,
@@ -24,20 +24,20 @@ impl From<Encoding> for nzskkserv_core::Encoding {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum DictPath {
     File(PathBuf),
     Url(Url),
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 pub struct DictDef {
     pub path: DictPath,
     pub encoding: Option<Encoding>,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 pub(crate) struct Config {
     pub enable_google_cgi: bool,
     pub server_encoding: Encoding,
