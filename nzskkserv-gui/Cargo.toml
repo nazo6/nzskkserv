@@ -7,7 +7,14 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = "1.0.95"
 dioxus = { version = "0.6.0", features = [] }
+directories = "6.0.0"
+log = "0.4.25"
+nzskkserv-core = { path = "../nzskkserv-core" }
+serde = "1.0.217"
+tokio.workspace = true
+url = { version = "2.5.4", features = ["serde"] }
 
 [features]
 default = ["desktop"]

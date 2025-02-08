@@ -3,7 +3,9 @@ use dioxus::{
     prelude::*,
 };
 
-const FAVICON: Asset = asset!("/assets/favicon.ico");
+mod config;
+mod server;
+
 const MAIN_CSS: Asset = asset!("/assets/main.css");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
@@ -16,16 +18,14 @@ fn App() -> Element {
     init_tray_icon(default_tray_icon(), None);
 
     rsx! {
-        document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: MAIN_CSS }
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
-        Hero {}
-    }
-}
-
-#[component]
-pub fn Hero() -> Element {
-    rsx! {
-        div { class: "px-8 py-8", "Hello" }
+        div { class: "flex flex-col h-full",
+            div { class: "tabs tabs-lift w-full",
+                a { class: "tab", "Log" }
+                a { class: "tab", "Config" }
+            }
+            div { class: "h-full" }
+        }
     }
 }
