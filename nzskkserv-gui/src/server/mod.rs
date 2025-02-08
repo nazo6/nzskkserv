@@ -3,6 +3,7 @@ use std::net::{IpAddr, Ipv4Addr};
 use handler::ServerHandler;
 use nzskkserv_core::{Server as ServerCore, ServerConfig};
 use tokio::{select, sync::watch};
+use tracing::{error, info};
 
 use crate::config::Config;
 
@@ -35,20 +36,25 @@ pub(super) fn start(initial_state: ServerState) -> ServerStateController {
 
             let new_config = state_rx.borrow_and_update().config.clone();
 
-            if new_config == prev_config {
-                continue;
-            } else {
+            if new_config != prev_config {
                 let res = crate::config::write_config(&new_config).await;
-                log::info!("Config saved: {:?}", res);
+                info!("Config saved: {:?}", res);
                 prev_config = new_config.clone();
             }
 
             let mut server = create_server(new_config).await;
 
             select! {
-                _ = server.start() => {}
+                res = server.start() => {
+                    if let Err(e) = res {
+                        error!("Server exited unexpectedly: {}, waiting for 5 seconds to restart...", e);
+                        tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
+                    }
+                }
                 _ = state_rx.changed() => {}
             }
+
+            info!("Server exited.");
         }
     });
 
@@ -59,7 +65,7 @@ async fn create_server(config: Config) -> Server {
     let server_config = ServerConfig {
         encoding: config.server_encoding.into(),
         address: IpAddr::from(Ipv4Addr::new(127, 0, 0, 1)),
-        port: config.port.unwrap_or(1178),
+        port: config.port,
     };
 
     ServerCore::new(

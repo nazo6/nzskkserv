@@ -2,7 +2,7 @@ use std::{collections::HashMap, path::PathBuf};
 
 use directories::ProjectDirs;
 use encoding_rs::{EUC_JP, UTF_8};
-use log::warn;
+use tracing::warn;
 use url::Url;
 
 use anyhow::{Context, Error};
@@ -32,11 +32,14 @@ pub(crate) async fn load_dicts(dicts: Vec<DictDef>) -> Dicts {
 }
 
 async fn get_dict_data(
-    DictDef { path, encoding }: DictDef,
+    DictDef {
+        path_or_url,
+        encoding,
+    }: DictDef,
 ) -> Result<Vec<(String, String)>, Error> {
-    let dict_path = match path {
-        DictPath::File(dict_path) => dict_path,
-        DictPath::Url(dict_url) => cache_online_dict(dict_url).await?,
+    let dict_path = match path_or_url {
+        DictPath::File { path } => path,
+        DictPath::Url { url } => cache_online_dict(url).await?,
     };
 
     let dict_bin = tokio::fs::read(&dict_path).await?;

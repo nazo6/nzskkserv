@@ -11,7 +11,6 @@ anyhow = "1.0.95"
 dioxus = { version = "0.6.0", features = [] }
 directories = "6.0.0"
 encoding_rs = "0.8.35"
-log = "0.4.25"
 nzskkserv-core = { path = "../nzskkserv-core" }
 reqwest = { version = "0.12.12", features = ["json"] }
 sanitize-filename = "0.6.0"
@@ -19,6 +18,8 @@ serde = "1.0.217"
 tokio.workspace = true
 toml = "0.8.20"
 url = { version = "2.5.4", features = ["serde"] }
+tracing = { workspace = true }
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 
 [features]
 default = ["desktop"]

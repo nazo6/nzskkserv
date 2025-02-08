@@ -6,8 +6,8 @@ use std::net::IpAddr;
 
 pub use error::Error;
 use handler::Handler;
-use log::{info, warn};
 use tokio::net::TcpListener;
+use tracing::{info, warn};
 
 #[derive(Clone)]
 pub enum Encoding {

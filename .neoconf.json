@@ -1,6 +1,7 @@
 {
   "lspconfig": {
-    "tailwindcss": {
+    "rust_analyzer": {
+      "rust-analyzer.cargo.targetDir": true
     }
   }
 }

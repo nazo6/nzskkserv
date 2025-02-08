@@ -4,6 +4,7 @@ resolver = "2"
 
 [workspace.dependencies]
 tokio = { version = "1.43.0" }
+tracing = "0.1.41"
 
 [profile]
 

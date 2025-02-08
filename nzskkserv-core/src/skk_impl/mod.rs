@@ -2,7 +2,7 @@ mod codec;
 
 use codec::SkkCodec;
 use futures::SinkExt;
-use log::{info, warn};
+use tracing::{info, warn};
 use tokio::net::TcpStream;
 use tokio_stream::StreamExt;
 use tokio_util::codec::Framed;

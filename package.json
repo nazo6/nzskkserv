@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently -i \"cd nzskkserv-gui && dx serve -i true\" \"cd nzskkserv-gui && pnpm tailwindcss -i ./nzskkserv-gui/input.css -o ./nzskkserv-gui/assets/tailwind.css --watch\""
+    "dev": "run-p dev-*",
+    "dev-dx": "cd nzskkserv-gui && dx serve",
+    "dev-tw": "cd nzskkserv-gui && pnpm tailwindcss -i ./nzskkserv-gui/input.css -o ./nzskkserv-gui/assets/tailwind.css --watch"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +15,7 @@
     "@tailwindcss/cli": "^4.0.4",
     "concurrently": "^9.1.2",
     "daisyui": "5.0.0-beta.7",
+    "npm-run-all": "^4.1.5",
     "tailwindcss": "^4.0.4"
   }
 }
