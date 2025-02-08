@@ -1,0 +1,17 @@
+{
+  "name": "nzskkserv",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently -i \"cd nzskkserv-gui && dx serve -i true\" \"cd nzskkserv-gui && pnpm tailwindcss -i ./nzskkserv-gui/input.css -o ./nzskkserv-gui/assets/tailwind.css --watch\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.0.4",
+    "concurrently": "^9.1.2",
+    "tailwindcss": "^4.0.4"
+  }
+}

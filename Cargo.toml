@@ -5,6 +5,14 @@ resolver = "2"
 [workspace.dependencies]
 tokio = { version = "1.43.0" }
 
+[profile]
 
-[patch."https://github.com/huacnlee/zed.git"]
-gpui = { git = "https://github.com/nazo6/zed.git", branch = "nazo6-custom" }
+[profile.wasm-dev]
+inherits = "dev"
+opt-level = 1
+
+[profile.server-dev]
+inherits = "dev"
+
+[profile.android-dev]
+inherits = "dev"
