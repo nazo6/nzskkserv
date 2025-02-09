@@ -1,12 +1,16 @@
 [application]
 
 # App (Project) Name
-name = "nzskkserv-gui"
+name = "nzskkserv"
+
+[bundle]
+identifier = "dev.nazo6.nzskkserv"
+publisher = "nazo6"
 
 [web.app]
 
 # HTML title tag content
-title = "nzskkserv-gui"
+title = "nzskkserv"
 
 # include `assets` in web platform
 [web.resource]

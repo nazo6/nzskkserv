@@ -9,6 +9,15 @@ mod server;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    // With this code, if program is launched from console, program can output to console.
+    #[cfg(all(target_os = "windows", not(debug_assertions)))]
+    {
+        use windows::Win32::System::Console::{AttachConsole, ATTACH_PARENT_PROCESS};
+        unsafe {
+            let _ = AttachConsole(ATTACH_PARENT_PROCESS);
+        }
+    }
+
     let (app_logger_layer, log_rx) = logger::AppLoggerLayer::new();
 
     let fmt_layer = tracing_subscriber::fmt::layer();
