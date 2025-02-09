@@ -1,6 +1,5 @@
 use bounded_vec_deque::BoundedVecDeque;
 use dioxus::prelude::*;
-use jiff::Unit;
 
 use crate::logger::{LogData, LogEntry};
 

@@ -62,13 +62,15 @@ where
         event.record(&mut visitor);
 
         if let Some(data) = visitor.data {
-            let _ = self.sender.send(LogEntry {
-                time: jiff::Zoned::now(),
-                level: event.metadata().level().to_owned(),
-                target: event.metadata().target().to_owned(),
-                name: event.metadata().name().to_owned(),
-                data,
-            });
+            if event.metadata().target().starts_with("nzskkserv") {
+                let _ = self.sender.send(LogEntry {
+                    time: jiff::Zoned::now(),
+                    level: event.metadata().level().to_owned(),
+                    target: event.metadata().target().to_owned(),
+                    name: event.metadata().name().to_owned(),
+                    data,
+                });
+            }
         }
     }
 }
