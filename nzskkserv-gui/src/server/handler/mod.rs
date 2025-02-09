@@ -1,4 +1,5 @@
 use nzskkserv_core::handler::Handler;
+use tracing::info;
 
 use crate::config::DictDef;
 
@@ -22,6 +23,13 @@ impl Handler for ServerHandler {
     const SERVER_VERSION: &'static str = "nzskkserv/0.1.0";
 
     async fn resolve_word(&self, input: &str) -> Result<Option<Vec<String>>, Self::Error> {
-        Ok(self.dict.get(input).cloned())
+        info!(nzskkserv_input = input);
+
+        let output = self.dict.get(input).cloned();
+
+        let output_word = output.clone().map(|v| v.join("/")).unwrap_or_default();
+        info!(nzskkserv_output = output_word);
+
+        Ok(output)
     }
 }

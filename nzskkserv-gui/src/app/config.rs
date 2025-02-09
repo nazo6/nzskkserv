@@ -11,25 +11,37 @@ pub(super) fn ConfigPanel() -> Element {
 
     let mut modified_config = use_signal(|| server_state.read().config.clone());
 
+    let auto_launch = auto_launch::AutoLaunchBuilder::new()
+        .set_app_name("nzskkserv")
+        .set_app_path(std::env::current_exe().unwrap().to_str().unwrap())
+        .build()
+        .unwrap();
+    let mut auto_launch_enabled = use_signal(|| auto_launch.is_enabled().unwrap());
+
     rsx! {
         div { class: "flex justify-center",
             div { class: "h-full p-1 flex flex-col gap-3 w-[50rem]",
-                p { class: "font-bold text-2xl", "Start/Stop server" }
-                button {
-                    class: "btn mx-5",
-                    onclick: {
-                        let set_server_state = set_server_state.clone();
-                        move |_| {
-                            set_server_state
-                                .send_modify(|state| { state.running = !server_state.read().running })
-                        }
-                    },
-                    if server_state.read().running {
-                        "Stop"
-                    } else {
-                        "Start"
+                div {
+                    p { class: "font-bold text-2xl", "Auto start" }
+                    input {
+                        r#type: "checkbox",
+                        class: "col-span-3 checkbox",
+                        checked: auto_launch_enabled,
+                        onchange: move |ev| {
+                            if ev.checked() {
+                                if let Err(e) = auto_launch.enable() {
+                                    tracing::error!("Failed to enable auto launch: {:?}", e);
+                                    return;
+                                }
+                            } else if let Err(e) = auto_launch.disable() {
+                                tracing::error!("Failed to disable auto launch: {:?}", e);
+                                return;
+                            }
+                            auto_launch_enabled.set(ev.checked());
+                        },
                     }
                 }
+
                 p { class: "font-bold text-2xl", "Server Settings" }
 
                 p { class: "font-bold text-lg", "Dictonaries" }
@@ -45,7 +57,7 @@ pub(super) fn ConfigPanel() -> Element {
                     div { class: "col-span-2", "Port" }
                     input {
                         r#type: "number",
-                        class: "col-span-3 input",
+                        class: "col-span-3 input w-full",
                         value: modified_config.read().port.to_string(),
                         oninput: move |ev| {
                             if let Ok(port) = ev.value().parse() {
@@ -55,10 +67,22 @@ pub(super) fn ConfigPanel() -> Element {
                     }
 
                     div { class: "col-span-2", "Server encoding" }
-                    EncodingSelector {
-                        encoding: modified_config.read().server_encoding.clone(),
-                        onchange: move |encoding| {
-                            modified_config.write().server_encoding = encoding;
+                    div { class: "col-span-3",
+                        EncodingSelector {
+                            encoding: modified_config.read().server_encoding.clone(),
+                            onchange: move |encoding| {
+                                modified_config.write().server_encoding = encoding;
+                            },
+                        }
+                    }
+
+                    div { class: "col-span-2", "Enable google cgi" }
+                    input {
+                        r#type: "checkbox",
+                        class: "col-span-3 checkbox",
+                        checked: modified_config.read().enable_google_cgi,
+                        onchange: move |ev| {
+                            modified_config.write().enable_google_cgi = ev.checked();
                         },
                     }
                 }
@@ -113,7 +137,7 @@ impl Encoding {
 fn EncodingSelector(encoding: Encoding, onchange: Callback<Encoding>) -> Element {
     rsx! {
         select {
-            class: "select",
+            class: "select w-full",
             value: encoding.to_str(),
             onchange: move |ev| {
                 if let Some(new_encoding) = Encoding::from_str(ev.data.value().as_str()) {

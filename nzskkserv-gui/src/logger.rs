@@ -1,5 +1,4 @@
 use std::fmt;
-use std::fmt::Write as _;
 
 use tokio::sync::broadcast;
 use tracing::field::{Field, Visit};
@@ -12,14 +11,19 @@ pub(crate) struct AppLoggerLayer {
 pub type LogReceiver = broadcast::Receiver<LogEntry>;
 
 #[derive(Clone, Debug)]
-pub(crate) enum LogEntry {
-    Tracing {
-        time: jiff::Zoned,
-        level: tracing::Level,
-        target: String,
-        name: String,
-        message: String,
-    },
+pub(crate) struct LogEntry {
+    pub time: jiff::Zoned,
+    pub level: tracing::Level,
+    pub target: String,
+    pub name: String,
+    pub data: LogData,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) enum LogData {
+    Message(String),
+    ConvertInput(String),
+    ConvertOutput(String),
 }
 
 impl AppLoggerLayer {
@@ -29,14 +33,18 @@ impl AppLoggerLayer {
     }
 }
 
-pub struct StringVisitor<'a> {
-    string: &'a mut String,
+pub struct LogVisitor {
+    data: Option<LogData>,
 }
 
-impl Visit for StringVisitor<'_> {
+impl Visit for LogVisitor {
     fn record_debug(&mut self, field: &Field, value: &dyn fmt::Debug) {
         if field.name() == "message" {
-            write!(self.string, "{:?}", value).unwrap();
+            self.data = Some(LogData::Message(format!("{:?}", value)));
+        } else if field.name() == "nzskkserv_input" {
+            self.data = Some(LogData::ConvertInput(format!("{:?}", value)));
+        } else if field.name() == "nzskkserv_output" {
+            self.data = Some(LogData::ConvertOutput(format!("{:?}", value)));
         }
     }
 }
@@ -50,17 +58,17 @@ where
         event: &tracing::Event<'_>,
         _ctx: tracing_subscriber::layer::Context<'_, S>,
     ) {
-        let mut message = String::new();
-        event.record(&mut StringVisitor {
-            string: &mut message,
-        });
+        let mut visitor = LogVisitor { data: None };
+        event.record(&mut visitor);
 
-        let _ = self.sender.send(LogEntry::Tracing {
-            time: jiff::Zoned::now(),
-            level: event.metadata().level().to_owned(),
-            target: event.metadata().target().to_owned(),
-            name: event.metadata().name().to_owned(),
-            message,
-        });
+        if let Some(data) = visitor.data {
+            let _ = self.sender.send(LogEntry {
+                time: jiff::Zoned::now(),
+                level: event.metadata().level().to_owned(),
+                target: event.metadata().target().to_owned(),
+                name: event.metadata().name().to_owned(),
+                data,
+            });
+        }
     }
 }

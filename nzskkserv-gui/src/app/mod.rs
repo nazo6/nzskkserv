@@ -7,6 +7,7 @@ use crate::{logger::LogReceiver, server::ServerStateController};
 mod config;
 mod log;
 mod server_state;
+mod start_stop_btn;
 mod tray;
 
 const MAIN_CSS: Asset = asset!("/assets/main.css");
@@ -47,11 +48,12 @@ fn App() -> Element {
                     "Log"
                 }
                 a {
-                    class: "tab",
+                    class: "tab mr-auto",
                     class: if *tab.read() == HomeTabItem::Config { "tab-active" },
                     onclick: move |_| *tab.write() = HomeTabItem::Config,
                     "Config"
                 }
+                start_stop_btn::ServerStartStop {}
             }
             div { class: "h-full overflow-auto",
                 div {

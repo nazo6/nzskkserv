@@ -2,7 +2,7 @@ use bounded_vec_deque::BoundedVecDeque;
 use dioxus::prelude::*;
 use jiff::Unit;
 
-use crate::logger::LogEntry;
+use crate::logger::{LogData, LogEntry};
 
 use super::LogReceiverContext;
 
@@ -37,7 +37,6 @@ pub(super) fn LogPanel() -> Element {
 
     rsx! {
         div { class: "h-full p-1",
-            div { "Log" }
             table { class: "table table-sm",
                 thead {
                     tr {
@@ -49,16 +48,15 @@ pub(super) fn LogPanel() -> Element {
                 }
                 tbody {
                     for entry in log.read().iter().rev() {
-                        match entry {
-                            LogEntry::Tracing { time, level, target, name, message } => {
-                                let time = time.strftime("%F %T");
-                                rsx! {
-                                    tr {
-                                        td { "{time}" }
-                                        td { "{level}" }
-                                        td { "{target}" }
-                                        td { "{message}" }
-                                    }
+                        {
+                            let time = entry.time.strftime("%F %T");
+                            let mes = format_log_data(entry.data.clone());
+                            rsx! {
+                                tr {
+                                    td { "{time}" }
+                                    td { "{entry.level}" }
+                                    td { "{entry.target}" }
+                                    td { "{mes}" }
                                 }
                             }
                         }
@@ -66,5 +64,13 @@ pub(super) fn LogPanel() -> Element {
                 }
             }
         }
+    }
+}
+
+fn format_log_data(data: LogData) -> String {
+    match data {
+        LogData::Message(m) => m,
+        LogData::ConvertInput(i) => i,
+        LogData::ConvertOutput(o) => o,
     }
 }

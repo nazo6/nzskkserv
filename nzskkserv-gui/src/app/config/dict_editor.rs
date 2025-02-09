@@ -127,7 +127,7 @@ fn DictRow(dict: DictDef, onchange: Callback<Option<DictDef>>) -> Element {
                     }
                 },
                 option { value: "File", "File" }
-                option { value: "Url", "Url" }
+                option { value: "Url", "URL" }
             }
         }
         td {

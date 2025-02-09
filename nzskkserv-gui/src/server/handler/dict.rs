@@ -14,10 +14,10 @@ pub type Dicts = HashMap<String, Vec<String>>;
 pub(crate) async fn load_dicts(dicts: Vec<DictDef>) -> Dicts {
     let mut dicts_data = Vec::new();
     for dict in dicts {
-        let dict_data = get_dict_data(dict).await;
+        let dict_data = get_dict_data(dict.clone()).await;
         match dict_data {
             Ok(dict_data) => dicts_data.push(dict_data),
-            Err(e) => warn!("Failed to load dict: {}", e),
+            Err(e) => warn!("Failed to load dict: {:?}, error: {}", dict, e),
         }
     }
 
