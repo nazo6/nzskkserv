@@ -22,6 +22,8 @@ pub type ServerStateController = watch::Sender<ServerState>;
 pub(super) fn start(initial_state: ServerState) -> ServerStateController {
     let (state_tx, mut state_rx) = watch::channel(initial_state.clone());
 
+    dbg!("1");
+
     tokio::spawn(async move {
         let mut prev_config = initial_state.config;
 

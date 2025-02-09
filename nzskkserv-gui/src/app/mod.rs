@@ -1,6 +1,8 @@
+use std::sync::{Arc, Mutex};
+
 use dioxus::prelude::*;
 
-use crate::server::ServerStateController;
+use crate::{logger::LogReceiver, server::ServerStateController};
 
 mod config;
 mod log;
@@ -10,8 +12,12 @@ mod tray;
 const MAIN_CSS: Asset = asset!("/assets/main.css");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
-pub(super) fn start(server_ctrl: ServerStateController) {
-    let vdom = VirtualDom::new(App).with_root_context(server_ctrl);
+type LogReceiverContext = Arc<Mutex<LogReceiver>>;
+
+pub(super) fn start(server_ctrl: ServerStateController, log_rx: LogReceiver) {
+    let vdom = VirtualDom::new(App)
+        .with_root_context(server_ctrl)
+        .with_root_context(Arc::new(Mutex::new(log_rx)));
     let config = dioxus::desktop::Config::new()
         .with_close_behaviour(dioxus::desktop::WindowCloseBehaviour::LastWindowHides);
 
@@ -47,8 +53,18 @@ fn App() -> Element {
                     "Config"
                 }
             }
-            div { class: if *tab.read() != HomeTabItem::Log { "hidden" }, log::LogPanel {} }
-            div { class: if *tab.read() != HomeTabItem::Config { "hidden" }, config::ConfigPanel {} }
+            div { class: "h-full overflow-auto",
+                div {
+                    class: "border border-base-300",
+                    class: if *tab.read() != HomeTabItem::Log { "hidden" },
+                    log::LogPanel {}
+                }
+                div {
+                    class: "border border-base-300",
+                    class: if *tab.read() != HomeTabItem::Config { "hidden" },
+                    config::ConfigPanel {}
+                }
+            }
         }
     }
 }

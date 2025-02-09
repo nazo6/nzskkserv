@@ -20,6 +20,8 @@ toml = "0.8.20"
 url = { version = "2.5.4", features = ["serde"] }
 tracing = { workspace = true }
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+bounded-vec-deque = "0.1.1"
+jiff = "0.1.29"
 
 [features]
 default = ["desktop"]
