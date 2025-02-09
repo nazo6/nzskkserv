@@ -17,7 +17,7 @@ pub(super) fn ServerStartStop() -> Element {
                 }
             }
             button {
-                class: "btn mx-5",
+                class: "btn mx-3",
                 onclick: {
                     let set_server_state = set_server_state.clone();
                     move |_| {

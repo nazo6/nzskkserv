@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use tracing::info;
 
 use crate::{app::server_state, config::Encoding};
 
@@ -14,6 +15,7 @@ pub(super) fn ConfigPanel() -> Element {
     let auto_launch = auto_launch::AutoLaunchBuilder::new()
         .set_app_name("nzskkserv")
         .set_app_path(std::env::current_exe().unwrap().to_str().unwrap())
+        .set_args(&["hide"])
         .build()
         .unwrap();
     let mut auto_launch_enabled = use_signal(|| auto_launch.is_enabled().unwrap());
@@ -37,6 +39,7 @@ pub(super) fn ConfigPanel() -> Element {
                                 tracing::error!("Failed to disable auto launch: {:?}", e);
                                 return;
                             }
+                            info!("Successfully changed auto launch state: {}", ev.checked());
                             auto_launch_enabled.set(ev.checked());
                         },
                     }

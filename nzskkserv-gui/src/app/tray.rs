@@ -1,5 +1,5 @@
 use dioxus::desktop::{
-    trayicon::{init_tray_icon, menu::MenuItem, DioxusTrayMenu},
+    trayicon::{init_tray_icon, menu::MenuItem, DioxusTrayIcon, DioxusTrayMenu},
     use_tray_menu_event_handler, use_window,
 };
 
@@ -13,7 +13,17 @@ pub(super) fn use_tray_menu() {
     )
     .unwrap();
 
-    init_tray_icon(menu, None);
+    init_tray_icon(
+        menu,
+        Some(
+            DioxusTrayIcon::from_rgba(
+                crate::icon::ICON_DATA.into(),
+                crate::icon::ICON_WIDTH,
+                crate::icon::ICON_HEIGHT,
+            )
+            .unwrap(),
+        ),
+    );
 
     let window = use_window();
     use_tray_menu_event_handler(move |ev| match ev.id.0.as_str() {

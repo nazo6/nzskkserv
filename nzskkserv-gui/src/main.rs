@@ -7,6 +7,10 @@ mod config;
 mod logger;
 mod server;
 
+mod icon {
+    include!(concat!(env!("OUT_DIR"), "/icon.rs"));
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // With this code, if program is launched from console, program can output to console.
@@ -38,7 +42,11 @@ async fn main() -> anyhow::Result<()> {
         running: true,
     });
 
-    app::start(server_ctrl, log_rx);
+    app::start(
+        server_ctrl,
+        log_rx,
+        std::env::args().any(|arg| arg == "hide"),
+    );
 
     Ok(())
 }

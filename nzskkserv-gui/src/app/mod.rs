@@ -1,6 +1,9 @@
 use std::sync::{Arc, Mutex};
 
-use dioxus::prelude::*;
+use dioxus::{
+    desktop::{use_window, WindowBuilder},
+    prelude::*,
+};
 
 #[cfg(not(debug_assertions))]
 use directories::ProjectDirs;
@@ -24,12 +27,24 @@ const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
 type LogReceiverContext = Arc<Mutex<LogReceiver>>;
 
-pub(super) fn start(server_ctrl: ServerStateController, log_rx: LogReceiver) {
+pub(super) fn start(server_ctrl: ServerStateController, log_rx: LogReceiver, hide_window: bool) {
     let vdom = VirtualDom::new(App)
         .with_root_context(server_ctrl)
         .with_root_context(Arc::new(Mutex::new(log_rx)));
+
+    let window = WindowBuilder::new().with_visible(!hide_window);
+
     let config = dioxus::desktop::Config::new()
+        .with_window(window)
         .with_menu(None)
+        .with_icon(
+            dioxus::desktop::tao::window::Icon::from_rgba(
+                crate::icon::ICON_DATA.into(),
+                crate::icon::ICON_WIDTH,
+                crate::icon::ICON_HEIGHT,
+            )
+            .unwrap(),
+        )
         .with_close_behaviour(dioxus::desktop::WindowCloseBehaviour::LastWindowHides);
 
     #[cfg(not(debug_assertions))]
@@ -73,6 +88,7 @@ enum HomeTabItem {
 #[component]
 fn App() -> Element {
     let mut tab = use_signal(|| HomeTabItem::Config);
+    let window = use_window();
     tray::use_tray_menu();
 
     rsx! {
@@ -98,6 +114,13 @@ fn App() -> Element {
                     "Config"
                 }
                 start_stop_btn::ServerStartStop {}
+                button {
+                    class: "btn mr-2",
+                    onclick: move |_| {
+                        window.close();
+                    },
+                    "Quit"
+                }
             }
             div { class: "h-full overflow-auto",
                 div {
