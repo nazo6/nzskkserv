@@ -1,11 +1,10 @@
 [package]
 name = "nzskkserv-core"
-version = "0.1.4"
-edition = "2021"
-
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
 description = "Library to create skk server."
-authors = ["nazo6"]
-license = "MIT"
 
 readme = "../README.md"
 documentation = "https://docs.rs/nzskkserv-core/"

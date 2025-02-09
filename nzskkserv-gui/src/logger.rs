@@ -15,7 +15,7 @@ pub(crate) struct LogEntry {
     pub time: jiff::Zoned,
     pub level: tracing::Level,
     pub target: String,
-    pub name: String,
+    // pub name: String,
     pub data: LogData,
 }
 
@@ -67,7 +67,7 @@ where
                     time: jiff::Zoned::now(),
                     level: event.metadata().level().to_owned(),
                     target: event.metadata().target().to_owned(),
-                    name: event.metadata().name().to_owned(),
+                    // name: event.metadata().name().to_owned(),
                     data,
                 });
             }
