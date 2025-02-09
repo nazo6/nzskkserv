@@ -1,9 +1,13 @@
 # nzskkserv
 
-とあるSKKサーバ実装です。
+とあるSKKサーバ実装。
 
-## 使い方
+## Building
 
-工事中
-
-アイコンはいらすとやからお借りしました。
+```sh
+cargo binstall dioxus-cli
+pnpm i
+pnpm build
+# or
+pnpm bundle
+```

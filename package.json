@@ -8,8 +8,10 @@
     "dev-dx": "cd nzskkserv-gui && dx serve",
     "dev-tw": "cd nzskkserv-gui && pnpm tailwindcss -i ./nzskkserv-gui/input.css -o ./nzskkserv-gui/assets/tailwind.css --watch",
     "build": "run-s build-tw build-dx",
+    "bundle": "run-s build-tw bundle-dx",
     "build-tw": "pnpm tailwindcss -i ./nzskkserv-gui/input.css -o ./nzskkserv-gui/assets/tailwind.css",
-    "build-dx": "cd nzskkserv-gui && dx build --release"
+    "build-dx": "cd nzskkserv-gui && dx build --release",
+    "bundle-dx": "cd nzskkserv-gui && dx bundle --release"
   },
   "keywords": [],
   "author": "",

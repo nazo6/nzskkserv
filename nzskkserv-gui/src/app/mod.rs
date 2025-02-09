@@ -32,7 +32,9 @@ pub(super) fn start(server_ctrl: ServerStateController, log_rx: LogReceiver, hid
         .with_root_context(server_ctrl)
         .with_root_context(Arc::new(Mutex::new(log_rx)));
 
-    let window = WindowBuilder::new().with_visible(!hide_window);
+    let window = WindowBuilder::new()
+        .with_visible(!hide_window)
+        .with_title("nzskkserv");
 
     let config = dioxus::desktop::Config::new()
         .with_window(window)

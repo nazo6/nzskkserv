@@ -25,4 +25,6 @@ pub const ICON_HEIGHT: u32 = {};
         image.height()
     );
     write!(out_file, "{}", source).unwrap();
+
+    windres::Build::new().compile("icon.rc").unwrap();
 }
