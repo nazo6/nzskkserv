@@ -44,11 +44,8 @@ async fn get_dict_data(
 
     let dict_bin = tokio::fs::read(&dict_path).await?;
     let (dict_str, _, _) = match &encoding {
-        Some(encoding) => match encoding {
-            Encoding::Utf8 => UTF_8.decode(&dict_bin),
-            Encoding::Eucjp => EUC_JP.decode(&dict_bin),
-        },
-        None => UTF_8.decode(&dict_bin),
+        Encoding::Utf8 => UTF_8.decode(&dict_bin),
+        Encoding::Eucjp => EUC_JP.decode(&dict_bin),
     };
 
     let mut dict_data = vec![];

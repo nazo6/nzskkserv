@@ -35,7 +35,12 @@ pub enum DictPath {
 pub struct DictDef {
     #[serde(flatten)]
     pub path_or_url: DictPath,
-    pub encoding: Option<Encoding>,
+    #[serde(default = "default_encoding")]
+    pub encoding: Encoding,
+}
+
+fn default_encoding() -> Encoding {
+    Encoding::Utf8
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
