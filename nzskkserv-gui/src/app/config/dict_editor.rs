@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 use url::Url;
 
 use super::EncodingSelector;
-use crate::config::{DictDef, DictPath, Encoding};
+use crate::config::{DictDef, DictFormat, DictPath, Encoding};
 
 #[component]
 pub(super) fn DictsEditor(dicts: Vec<DictDef>, onchange: Callback<Vec<DictDef>>) -> Element {
@@ -16,6 +16,7 @@ pub(super) fn DictsEditor(dicts: Vec<DictDef>, onchange: Callback<Vec<DictDef>>)
                         th { "Source type" }
                         th { "URL/Path" }
                         th { "Encoding" }
+                        th { "Format" }
                         th {}
                     }
                 }
@@ -54,6 +55,7 @@ pub(super) fn DictsEditor(dicts: Vec<DictDef>, onchange: Callback<Vec<DictDef>>)
                                         path: PathBuf::new(),
                                     },
                                     encoding: Encoding::Utf8,
+                                    format: DictFormat::Skk,
                                 });
                             onchange.call(dicts);
                         }
@@ -109,6 +111,22 @@ impl DictDef {
     }
 }
 
+impl DictFormat {
+    fn to_str(&self) -> String {
+        match self {
+            DictFormat::Skk => "Skk".to_string(),
+            DictFormat::Mozc => "Mozc".to_string(),
+        }
+    }
+    fn from_str(str: &str) -> Self {
+        match str {
+            "Skk" => DictFormat::Skk,
+            "Mozc" => DictFormat::Mozc,
+            _ => DictFormat::Skk,
+        }
+    }
+}
+
 #[component]
 fn DictRow(dict: DictDef, onchange: Callback<Option<DictDef>>) -> Element {
     rsx! {
@@ -157,6 +175,22 @@ fn DictRow(dict: DictDef, onchange: Callback<Option<DictDef>>) -> Element {
                         onchange.call(Some(new_dict));
                     }
                 },
+            }
+        }
+        td {
+            select {
+                class: "select",
+                value: dict.format.to_str(),
+                onchange: {
+                    let dict = dict.clone();
+                    move |ev: Event<FormData>| {
+                        let mut new_dict = dict.clone();
+                        new_dict.format = DictFormat::from_str(ev.value().as_str());
+                        onchange.call(Some(new_dict));
+                    }
+                },
+                option { value: "Skk", "SKK" }
+                option { value: "Mozc", "mozc" }
             }
         }
         td {

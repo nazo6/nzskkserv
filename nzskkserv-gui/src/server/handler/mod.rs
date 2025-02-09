@@ -1,4 +1,4 @@
-use nzskkserv_core::handler::Handler;
+use nzskkserv_core::handler::{Entry, Handler};
 use tracing::info;
 
 use crate::config::DictDef;
@@ -26,27 +26,26 @@ impl Handler for ServerHandler {
 
     const SERVER_VERSION: &'static str = "nzskkserv/0.1.0";
 
-    async fn resolve_word(&self, input: &str) -> Result<Option<Vec<String>>, Self::Error> {
+    async fn resolve_word(&self, input: &str) -> Result<Vec<Entry>, Self::Error> {
         info!(nzskkserv_input = input);
 
         let output = match self.dict.get(input).cloned() {
-            Some(o) => Some(o),
+            Some(o) => o,
             None => {
                 if self.google_cgi {
-                    Some(fetch_google_cgi(input).await?)
+                    fetch_google_cgi(input).await?
                 } else {
-                    None
+                    vec![]
                 }
             }
         };
 
-        let output_word = output.clone().map(|v| v.join("/")).unwrap_or_default();
-        info!(nzskkserv_output = output_word);
+        info!(nzskkserv_output = format!("{:?}", output));
 
         Ok(output)
     }
 }
-async fn fetch_google_cgi(query: &str) -> anyhow::Result<Vec<String>> {
+async fn fetch_google_cgi(query: &str) -> anyhow::Result<Vec<Entry>> {
     let mut alphabet_end = None;
     let query = if let Some(c) = query.chars().last() {
         if c.is_ascii_alphabetic() {
@@ -78,6 +77,14 @@ async fn fetch_google_cgi(query: &str) -> anyhow::Result<Vec<String>> {
             cand.push(c);
         });
     }
+
+    let candidates = candidates
+        .into_iter()
+        .map(|c| Entry {
+            candidate: c,
+            description: None,
+        })
+        .collect();
 
     Ok(candidates)
 }

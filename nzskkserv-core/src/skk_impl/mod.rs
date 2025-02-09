@@ -2,10 +2,10 @@ mod codec;
 
 use codec::SkkCodec;
 use futures::SinkExt;
-use tracing::{info, warn};
 use tokio::net::TcpStream;
 use tokio_stream::StreamExt;
 use tokio_util::codec::Framed;
+use tracing::{info, warn};
 
 use crate::{handler::Handler, Error};
 
@@ -50,9 +50,23 @@ pub(crate) async fn process_skk<H: Handler>(
                         let Ok(candidates) = handler.resolve_word(&str).await else {
                             continue;
                         };
-                        let candidates = candidates.and_then(format_candidates_str);
+                        let candidates_str = if candidates.is_empty() {
+                            None
+                        } else {
+                            let mut str = "/".to_string();
+                            candidates.iter().for_each(|c| {
+                                str.push_str(&c.candidate);
+                                if let Some(d) = &c.description {
+                                    str.push(';');
+                                    str.push_str(d);
+                                }
+                                str.push('/');
+                            });
 
-                        framed.send(SkkOutGoingEvent::Convert(candidates)).await
+                            Some(str)
+                        };
+
+                        framed.send(SkkOutGoingEvent::Convert(candidates_str)).await
                     }
                     SkkIncomingEvent::Server => framed.send(SkkOutGoingEvent::Server).await,
                     SkkIncomingEvent::Version => framed.send(SkkOutGoingEvent::Version).await,
@@ -74,30 +88,4 @@ pub(crate) async fn process_skk<H: Handler>(
     info!("Socket closed");
 
     Ok(())
-}
-
-fn format_candidates_str(candidates: Vec<String>) -> Option<String> {
-    let mut candidates_str = "/".to_string();
-    for mut candidate in candidates {
-        if candidate.is_empty() {
-            continue;
-        }
-        let tmp = candidate.clone();
-        let mut chars = tmp.chars();
-        if chars.next().unwrap() == '/' {
-            candidate.remove(0);
-        }
-        if chars.last().unwrap() == '/' {
-            candidate.pop();
-        }
-
-        candidates_str.push_str(&candidate);
-        candidates_str.push('/')
-    }
-
-    if candidates_str.is_empty() {
-        None
-    } else {
-        Some(candidates_str)
-    }
 }

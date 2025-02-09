@@ -2,31 +2,56 @@ use std::{collections::HashMap, path::PathBuf};
 
 use directories::ProjectDirs;
 use encoding_rs::{EUC_JP, UTF_8};
-use tracing::warn;
+use nzskkserv_core::handler::Entry;
+use tracing::{info, warn};
 use url::Url;
 
 use anyhow::{Context, Error};
 
-use crate::config::{DictDef, DictPath, Encoding};
+use crate::config::{DictDef, DictFormat, DictPath, Encoding};
 
-pub type Dicts = HashMap<String, Vec<String>>;
+mod mozc;
+mod skk;
+
+pub type Dicts = HashMap<String, Vec<Entry>>;
 
 pub(crate) async fn load_dicts(dicts: Vec<DictDef>) -> Dicts {
     let mut dicts_data = Vec::new();
     for dict in dicts {
         let dict_data = get_dict_data(dict.clone()).await;
         match dict_data {
-            Ok(dict_data) => dicts_data.push(dict_data),
-            Err(e) => warn!("Failed to load dict: {:?}, error: {}", dict, e),
+            Ok(dict_data) => {
+                if dict_data.is_empty() {
+                    warn!(
+                        "Dict has 0 entries: {}. Maybe url is invalid or format is wrong?",
+                        dict.path_or_url
+                    );
+                    continue;
+                } else {
+                    info!(
+                        "Loaded {} entries from dict: {}",
+                        dict_data.len(),
+                        dict.path_or_url
+                    );
+                }
+                dicts_data.push(dict_data);
+            }
+            Err(e) => warn!("Failed to load dict: {}, error: {}", dict.path_or_url, e),
         }
     }
 
+    let dicts_count = dicts_data.len();
     let mut dicts_map = HashMap::new();
     for dict_data in dicts_data {
-        for (key, value) in dict_data {
-            dicts_map.entry(key).or_insert_with(Vec::new).push(value);
+        for (key, mut entries) in dict_data {
+            dicts_map
+                .entry(key)
+                .or_insert_with(Vec::new)
+                .append(&mut entries);
         }
     }
+
+    info!("Loaded {} keys from {} dicts", dicts_map.len(), dicts_count);
 
     dicts_map
 }
@@ -35,8 +60,9 @@ async fn get_dict_data(
     DictDef {
         path_or_url,
         encoding,
+        format,
     }: DictDef,
-) -> Result<Vec<(String, String)>, Error> {
+) -> Result<Vec<(String, Vec<Entry>)>, Error> {
     let dict_path = match path_or_url {
         DictPath::File { path } => path,
         DictPath::Url { url } => cache_online_dict(url).await?,
@@ -48,15 +74,12 @@ async fn get_dict_data(
         Encoding::Eucjp => EUC_JP.decode(&dict_bin),
     };
 
-    let mut dict_data = vec![];
-    for line in (*dict_str).lines() {
-        let line = line.split_once(' ');
-        if let Some(line) = line {
-            dict_data.push((line.0.to_string(), line.1.to_string()));
-        }
-    }
+    let dicts = match format {
+        DictFormat::Skk => skk::parse_skk_dict(&dict_str),
+        DictFormat::Mozc => mozc::parse_mozc_dict(&dict_str),
+    };
 
-    Ok(dict_data)
+    Ok(dicts)
 }
 
 /// Return directory that contains online dict.

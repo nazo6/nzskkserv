@@ -1,5 +1,11 @@
 use std::{fmt::Display, future::Future};
 
+#[derive(Clone, Debug)]
+pub struct Entry {
+    pub candidate: String,
+    pub description: Option<String>,
+}
+
 #[allow(async_fn_in_trait)]
 pub trait Handler: Sync + Send + 'static {
     type Error: Display + Send + Sync + 'static;
@@ -9,7 +15,7 @@ pub trait Handler: Sync + Send + 'static {
     fn resolve_word(
         &self,
         input: &str,
-    ) -> impl Future<Output = Result<Option<Vec<String>>, Self::Error>> + Send;
+    ) -> impl Future<Output = Result<Vec<Entry>, Self::Error>> + Send;
     fn get_hostname(&self) -> Result<String, Self::Error> {
         Ok("localhost".to_string())
     }
