@@ -24,6 +24,7 @@ pub(super) fn ConfigPanel() -> Element {
         div { class: "flex justify-center",
             div { class: "h-full p-1 flex flex-col gap-3 w-[50rem]",
                 div {
+                    p { "Config path: {crate::config::CONFIG_PATH.to_string_lossy()}" }
                     p { class: "font-bold text-2xl", "Auto start" }
                     input {
                         r#type: "checkbox",

@@ -1,11 +1,11 @@
 use std::path::PathBuf;
+use std::sync::LazyLock;
 
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 use tracing::info;
 
-use anyhow::Context;
 use anyhow::Result;
 use url::Url;
 
@@ -83,18 +83,20 @@ impl Default for Config {
     }
 }
 
-pub(crate) async fn load_config() -> Result<Config> {
-    let project_dirs = ProjectDirs::from("", "", "nzskkserv").context("No project dirs")?;
+pub static CONFIG_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
+    let project_dirs = ProjectDirs::from("", "", "nzskkserv").expect("No project dirs");
     let config_dir = project_dirs.config_dir().to_path_buf();
-    let config_path = config_dir.join("config.toml");
+    config_dir.join("config.toml")
+});
 
-    let config: Config = if !config_path.exists() {
+pub(crate) async fn load_config() -> Result<Config> {
+    let config: Config = if !CONFIG_PATH.exists() {
         info!("Config file not found. Creating default config file.");
-        fs::create_dir_all(&config_dir).await?;
-        fs::write(&config_path, toml::to_string(&Config::default())?).await?;
+        fs::create_dir_all(&CONFIG_PATH.parent().unwrap()).await?;
+        fs::write(&*CONFIG_PATH, toml::to_string(&Config::default())?).await?;
         Config::default()
     } else {
-        let config = fs::read_to_string(&config_path).await?;
+        let config = fs::read_to_string(&*CONFIG_PATH).await?;
         toml::from_str(&config)?
     };
 
@@ -102,16 +104,10 @@ pub(crate) async fn load_config() -> Result<Config> {
 }
 
 pub(crate) async fn write_config(config: &Config) -> Result<()> {
-    let project_dirs =
-        ProjectDirs::from("", "", "nzskkserv").context("Could not find config dir.")?;
-    let mut config_file_path = project_dirs.config_dir().to_path_buf();
-
-    fs::create_dir_all(&config_file_path).await?;
-
-    config_file_path.push("config.toml");
+    fs::create_dir_all(CONFIG_PATH.parent().unwrap()).await?;
 
     let config_text = toml::to_string(&config)?;
-    fs::write(config_file_path, config_text).await?;
+    fs::write(&*CONFIG_PATH, config_text).await?;
 
     Ok(())
 }
