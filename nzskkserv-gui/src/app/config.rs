@@ -16,6 +16,7 @@ pub(super) fn ConfigPanel() -> Element {
         .set_app_name("nzskkserv")
         .set_app_path(std::env::current_exe().unwrap().to_str().unwrap())
         .set_args(&["hide"])
+        .set_use_launch_agent(true)
         .build()
         .unwrap();
     let mut auto_launch_enabled = use_signal(|| auto_launch.is_enabled().unwrap());
