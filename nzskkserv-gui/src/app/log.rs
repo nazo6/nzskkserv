@@ -1,5 +1,6 @@
 use bounded_vec_deque::BoundedVecDeque;
 use dioxus::prelude::*;
+use tracing::error;
 
 use crate::logger::{LogData, LogEntry};
 
@@ -20,8 +21,14 @@ fn use_log() -> ReadOnlySignal<BoundedVecDeque<LogEntry>> {
         spawn(async move {
             loop {
                 let mut log_rx = log_receiver.lock().unwrap();
-                if let Ok(entry) = log_rx.recv().await {
-                    log_store.write().push_back(entry);
+                match log_rx.recv().await {
+                    Ok(entry) => {
+                        log_store.write().push_back(entry);
+                    }
+                    Err(_) => {
+                        error!("Log receiver channel closed, stopping log updates.");
+                        break;
+                    }
                 }
             }
         });

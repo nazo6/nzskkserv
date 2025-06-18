@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use tracing::error;
 
 use crate::server::{ServerState, ServerStateController};
 
@@ -11,8 +12,13 @@ pub fn use_server_state() -> ReadOnlySignal<ServerState> {
         let mut receiver = server_ctrl.subscribe();
         spawn(async move {
             loop {
-                let _ = receiver.changed().await;
-                server_state.set(server_ctrl.borrow().clone());
+                match receiver.changed().await {
+                    Ok(_) => server_state.set(server_ctrl.borrow().clone()),
+                    Err(e) => {
+                        error!("Error receiving server state change: {}", e);
+                        break; // Exit the loop if there's an error
+                    }
+                }
             }
         });
     });
