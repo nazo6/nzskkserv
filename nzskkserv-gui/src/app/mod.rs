@@ -1,9 +1,10 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use dioxus::{
     desktop::{use_window, WindowBuilder},
     prelude::*,
 };
+use tokio::sync::Mutex;
 
 #[cfg(not(debug_assertions))]
 use directories::ProjectDirs;

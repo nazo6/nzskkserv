@@ -6,12 +6,6 @@ use crate::logger::{LogData, LogEntry};
 
 use super::LogReceiverContext;
 
-// NOTE: It is not expected to call this hook multiple times.
-// If multiple instance of this hook exists, app will be blocked.
-#[allow(
-    clippy::await_holding_lock,
-    reason = "If this hook is called only once, mutex actually never blocks."
-)]
 fn use_log() -> ReadOnlySignal<BoundedVecDeque<LogEntry>> {
     let mut log_store = use_signal(|| BoundedVecDeque::<LogEntry>::new(128));
     let log_receiver: LogReceiverContext = use_context();
@@ -20,7 +14,7 @@ fn use_log() -> ReadOnlySignal<BoundedVecDeque<LogEntry>> {
         let log_receiver = log_receiver.clone();
         spawn(async move {
             loop {
-                let mut log_rx = log_receiver.lock().unwrap();
+                let mut log_rx = log_receiver.lock().await;
                 match log_rx.recv().await {
                     Ok(entry) => {
                         log_store.write().push_back(entry);
