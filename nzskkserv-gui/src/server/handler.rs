@@ -1,21 +1,59 @@
+use std::collections::HashMap;
+
 use nzskkserv_core::handler::{Entry, Handler};
-use tracing::info;
+use tracing::{info, warn};
 
-use crate::config::DictDef;
-
-mod dict;
+use crate::dict_utils::DictDef;
 
 pub struct ServerHandler {
-    dict: dict::Dicts,
+    dict: HashMap<String, Vec<Entry>>,
     google_cgi: bool,
 }
 
 impl ServerHandler {
     pub async fn new_from_config(dict_defs: Vec<DictDef>, google_cgi: bool) -> Self {
-        let dicts_data = dict::load_dicts(dict_defs).await;
+        let mut dicts_data = Vec::new();
+        for dict_def in dict_defs {
+            let dict_data = dict_def.get_dict_data(false).await;
+            match dict_data {
+                Ok(dict_data) => {
+                    if dict_data.is_empty() {
+                        warn!(
+                            "Dict has 0 entries: {}. Maybe url is invalid or format is wrong?",
+                            dict_def.path_or_url
+                        );
+                        continue;
+                    } else {
+                        info!(
+                            "Loaded {} entries from dict: {}",
+                            dict_data.len(),
+                            dict_def.path_or_url
+                        );
+                    }
+                    dicts_data.push(dict_data);
+                }
+                Err(e) => warn!(
+                    "Failed to load dict: {}, error: {}",
+                    dict_def.path_or_url, e
+                ),
+            }
+        }
+
+        let dicts_count = dicts_data.len();
+        let mut dicts_map = HashMap::new();
+        for dict_data in dicts_data {
+            for (key, mut entries) in dict_data {
+                dicts_map
+                    .entry(key)
+                    .or_insert_with(Vec::new)
+                    .append(&mut entries);
+            }
+        }
+
+        info!("Loaded {} keys from {} dicts", dicts_map.len(), dicts_count);
 
         Self {
-            dict: dicts_data,
+            dict: dicts_map,
             google_cgi,
         }
     }

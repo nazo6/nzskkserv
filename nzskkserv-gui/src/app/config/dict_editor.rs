@@ -1,10 +1,13 @@
 use std::path::PathBuf;
 
 use dioxus::prelude::*;
-use url::Url;
+use tracing::{info, warn};
 
 use super::EncodingSelector;
-use crate::config::{DictDef, DictFormat, DictPath, Encoding};
+use crate::{
+    config::Encoding,
+    dict_utils::{DictDef, DictFormat, DictPath},
+};
 
 #[component]
 pub(super) fn DictsEditor(dicts: Vec<DictDef>, onchange: Callback<Vec<DictDef>>) -> Element {
@@ -63,66 +66,6 @@ pub(super) fn DictsEditor(dicts: Vec<DictDef>, onchange: Callback<Vec<DictDef>>)
                     "Add"
                 }
             }
-        }
-    }
-}
-
-impl DictDef {
-    fn get_path_url_str(&self) -> String {
-        match &self.path_or_url {
-            DictPath::File { path } => path.to_string_lossy().to_string(),
-            DictPath::Url { url } => url.to_string(),
-        }
-    }
-    fn to_type_str(&self) -> String {
-        match &self.path_or_url {
-            DictPath::File { .. } => "File".to_string(),
-            DictPath::Url { .. } => "Url".to_string(),
-        }
-    }
-
-    fn set_path_url(&mut self, str: &str) -> anyhow::Result<()> {
-        match &mut self.path_or_url {
-            DictPath::File { path } => {
-                *path = PathBuf::from(str);
-            }
-            DictPath::Url { url } => {
-                *url = Url::parse(str)?;
-            }
-        }
-        Ok(())
-    }
-
-    fn set_type(&mut self, new_source_type: &str) -> anyhow::Result<()> {
-        match (self.path_or_url.clone(), new_source_type) {
-            (DictPath::File { .. }, "Url") => {
-                self.path_or_url = DictPath::Url {
-                    url: Url::parse("http://example.com").unwrap(),
-                };
-            }
-            (DictPath::Url { .. }, "File") => {
-                self.path_or_url = DictPath::File {
-                    path: PathBuf::new(),
-                };
-            }
-            _ => {}
-        }
-        Ok(())
-    }
-}
-
-impl DictFormat {
-    fn to_str(&self) -> String {
-        match self {
-            DictFormat::Skk => "Skk".to_string(),
-            DictFormat::Mozc => "Mozc".to_string(),
-        }
-    }
-    fn from_str(str: &str) -> Self {
-        match str {
-            "Skk" => DictFormat::Skk,
-            "Mozc" => DictFormat::Mozc,
-            _ => DictFormat::Skk,
         }
     }
 }
@@ -191,6 +134,33 @@ fn DictRow(dict: DictDef, onchange: Callback<Option<DictDef>>) -> Element {
                 },
                 option { value: "Skk", "SKK" }
                 option { value: "Mozc", "mozc" }
+            }
+        }
+        td {
+            button {
+                class: "btn btn-square",
+                disabled: !matches!(dict.path_or_url, DictPath::Url { .. }),
+                onclick: {
+                    let path = dict.path_or_url.clone();
+                    move |_| {
+                        let path = path.clone();
+                        spawn_forever(async move {
+                            if let DictPath::Url { url } = path {
+                                match url.cache_and_get(true).await {
+                                    Ok(_) => {
+                                        info!("Dictionary cache updated: {}", url.0);
+                                    }
+                                    Err(e) => {
+                                        warn!(
+                                            "Failed to update dictionary cache: {}, error: {}", url.0, e
+                                        );
+                                    }
+                                }
+                            }
+                        });
+                    }
+                },
+                "R"
             }
         }
         td {

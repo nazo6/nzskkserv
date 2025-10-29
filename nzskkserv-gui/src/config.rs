@@ -7,7 +7,8 @@ use tokio::fs;
 use tracing::info;
 
 use anyhow::Result;
-use url::Url;
+
+use crate::dict_utils::DictDef;
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub enum Encoding {
@@ -22,45 +23,6 @@ impl From<Encoding> for nzskkserv_core::Encoding {
             Encoding::Eucjp => nzskkserv_core::Encoding::Eucjp,
         }
     }
-}
-
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
-#[serde(untagged)]
-pub enum DictPath {
-    File { path: PathBuf },
-    Url { url: Url },
-}
-
-impl std::fmt::Display for DictPath {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            DictPath::File { path } => write!(f, "{}", path.to_string_lossy()),
-            DictPath::Url { url } => write!(f, "{}", url),
-        }
-    }
-}
-
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
-pub enum DictFormat {
-    Skk,
-    Mozc,
-}
-
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
-pub struct DictDef {
-    #[serde(flatten)]
-    pub path_or_url: DictPath,
-    #[serde(default = "default_encoding")]
-    pub encoding: Encoding,
-    #[serde(default = "default_format")]
-    pub format: DictFormat,
-}
-
-fn default_encoding() -> Encoding {
-    Encoding::Utf8
-}
-fn default_format() -> DictFormat {
-    DictFormat::Skk
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
