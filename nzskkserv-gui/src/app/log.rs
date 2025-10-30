@@ -7,18 +7,18 @@ use crate::logger::{LogData, LogEntry};
 
 use super::LogReceiverContext;
 
-fn use_log() -> ReadOnlySignal<VecDeque<LogEntry>> {
-    let mut log_store = use_signal(|| VecDeque::<LogEntry>::with_capacity(8));
+fn use_log() -> ReadOnlySignal<VecDeque<LogEntry>, SyncStorage> {
+    let mut log_store = use_signal_sync(|| VecDeque::<LogEntry>::with_capacity(128));
     let mut log_receiver: LogReceiverContext = use_context();
 
     use_hook(move || {
-        spawn(async move {
-            dbg!("spawn");
+        // NOTE: dioxusのspawnを使うと、126会程度logの受け取りが行われた後にハングする。謎。
+        tokio::spawn(async move {
             loop {
+                tokio::time::sleep(std::time::Duration::from_millis(10)).await;
                 match log_receiver.0.recv().await {
                     Ok(entry) => {
                         let mut log_store = log_store.write();
-                        dbg!(log_store.len());
                         if log_store.len() == log_store.capacity() {
                             log_store.pop_front();
                         }
@@ -33,7 +33,7 @@ fn use_log() -> ReadOnlySignal<VecDeque<LogEntry>> {
         });
     });
 
-    ReadOnlySignal::new(log_store)
+    ReadOnlySignal::new_maybe_sync(log_store)
 }
 
 #[component]
