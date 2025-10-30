@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use dioxus::{core::spawn_forever, prelude::*};
+use dioxus::prelude::*;
 use tracing::{info, warn};
 
 use super::EncodingSelector;
