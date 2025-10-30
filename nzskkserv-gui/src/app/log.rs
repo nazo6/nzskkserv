@@ -10,9 +10,9 @@ fn use_log() -> ReadOnlySignal<BoundedVecDeque<LogEntry>> {
     let mut log_store = use_signal(|| BoundedVecDeque::<LogEntry>::new(128));
     let log_receiver: LogReceiverContext = use_context();
 
-    use_effect(move || {
+    use_future(move || {
         let log_receiver = log_receiver.clone();
-        spawn(async move {
+        async move {
             loop {
                 let mut log_rx = log_receiver.lock().await;
                 match log_rx.recv().await {
@@ -25,7 +25,7 @@ fn use_log() -> ReadOnlySignal<BoundedVecDeque<LogEntry>> {
                     }
                 }
             }
-        });
+        }
     });
 
     ReadOnlySignal::new(log_store)
