@@ -48,7 +48,7 @@ pub(super) fn start(server_ctrl: ServerStateController, log_rx: LogReceiver, hid
             )
             .unwrap(),
         )
-        .with_close_behaviour(dioxus::desktop::WindowCloseBehaviour::LastWindowHides);
+        .with_close_behaviour(dioxus::desktop::WindowCloseBehaviour::WindowHides);
 
     #[cfg(not(debug_assertions))]
     let config = {
