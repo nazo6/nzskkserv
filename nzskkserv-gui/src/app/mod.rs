@@ -1,10 +1,7 @@
-use std::sync::Arc;
-
 use dioxus::{
     desktop::{use_window, WindowBuilder},
     prelude::*,
 };
-use tokio::sync::Mutex;
 
 #[cfg(not(debug_assertions))]
 use directories::ProjectDirs;
@@ -26,12 +23,17 @@ const MAIN_CSS: Asset = asset!("/assets/main.css");
 #[cfg(debug_assertions)]
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
-type LogReceiverContext = Arc<Mutex<LogReceiver>>;
+struct LogReceiverContext(pub LogReceiver);
+impl Clone for LogReceiverContext {
+    fn clone(&self) -> Self {
+        Self(self.0.resubscribe())
+    }
+}
 
 pub(super) fn start(server_ctrl: ServerStateController, log_rx: LogReceiver, hide_window: bool) {
     let vdom = VirtualDom::new(App)
         .with_root_context(server_ctrl)
-        .with_root_context(Arc::new(Mutex::new(log_rx)));
+        .with_root_context(LogReceiverContext(log_rx));
 
     let window = WindowBuilder::new()
         .with_visible(!hide_window)

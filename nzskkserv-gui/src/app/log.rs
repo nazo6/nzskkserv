@@ -1,4 +1,5 @@
-use bounded_vec_deque::BoundedVecDeque;
+use std::collections::VecDeque;
+
 use dioxus::prelude::*;
 use tracing::error;
 
@@ -6,18 +7,22 @@ use crate::logger::{LogData, LogEntry};
 
 use super::LogReceiverContext;
 
-fn use_log() -> ReadOnlySignal<BoundedVecDeque<LogEntry>> {
-    let mut log_store = use_signal(|| BoundedVecDeque::<LogEntry>::new(128));
-    let log_receiver: LogReceiverContext = use_context();
+fn use_log() -> ReadOnlySignal<VecDeque<LogEntry>> {
+    let mut log_store = use_signal(|| VecDeque::<LogEntry>::with_capacity(8));
+    let mut log_receiver: LogReceiverContext = use_context();
 
-    use_future(move || {
-        let log_receiver = log_receiver.clone();
-        async move {
+    use_hook(move || {
+        spawn(async move {
+            dbg!("spawn");
             loop {
-                let mut log_rx = log_receiver.lock().await;
-                match log_rx.recv().await {
+                match log_receiver.0.recv().await {
                     Ok(entry) => {
-                        log_store.write().push_back(entry);
+                        let mut log_store = log_store.write();
+                        dbg!(log_store.len());
+                        if log_store.len() == log_store.capacity() {
+                            log_store.pop_front();
+                        }
+                        log_store.push_back(entry);
                     }
                     Err(_) => {
                         error!("Log receiver channel closed, stopping log updates.");
@@ -25,7 +30,7 @@ fn use_log() -> ReadOnlySignal<BoundedVecDeque<LogEntry>> {
                     }
                 }
             }
-        }
+        });
     });
 
     ReadOnlySignal::new(log_store)
