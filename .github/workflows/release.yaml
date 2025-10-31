@@ -2,8 +2,8 @@ name: Release on tag
 
 on:
   push:
-    # tags:
-    #   - '*'
+    tags:
+      - '*'
 
 jobs:
   build-and-release:
