@@ -3,7 +3,7 @@ members = ["nzskkserv-core", "nzskkserv-gui"]
 resolver = "2"
 
 [workspace.package]
-version = "0.2.1"
+version = "0.2.2"
 authors = ["nazo6 <git@nazo6.dev>"]
 edition = "2021"
 license = "MIT"

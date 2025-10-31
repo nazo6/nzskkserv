@@ -2,8 +2,8 @@ name: Release on tag
 
 on:
   push:
-    tags:
-      - '*'
+    # tags:
+    #   - '*'
 
 jobs:
   build-and-release:
@@ -13,15 +13,21 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact_path: target/dx/nzskkserv-gui/bundle/linux/bundle/*.AppImage
+            artifact_path: target/dx/nzskkserv-gui/bundle/linux/bundle/appimage/*.AppImage
           - os: macos-latest
-            artifact_path: target/dx/nzskkserv-gui/bundle/macos/bundle/*.dmg
+            artifact_path: target/dx/nzskkserv-gui/bundle/macos/bundle/dmg/*.dmg
           - os: windows-latest
-            artifact_path: target/dx/nzskkserv-gui/bundle/windows/bundle/*.msi
+            artifact_path: target/dx/nzskkserv-gui/bundle/windows/bundle/msi/*.msi
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -35,25 +41,11 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
         with:
-          node-version: '22'
-          cache: 'pnpm'
-
-      - name: Install pnpm
-        run: npm install -g pnpm
-
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-
-      - name: Install dependencies
-        run: pnpm install
+          version: 10
+          run_install: true
 
       - name: Install dioxus-cli
         uses: taiki-e/install-action@v2

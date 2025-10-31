@@ -6,6 +6,7 @@ name = "nzskkserv"
 [bundle]
 identifier = "dev.nazo6.nzskkserv"
 publisher = "nazo6"
+icon = ["icons/icon.ico", "icons/icon.png", "icons/icon.icns"]
 
 [web.app]
 
