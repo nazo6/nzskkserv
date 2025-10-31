@@ -17,7 +17,7 @@ jobs:
           - os: macos-latest
             artifact_path: target/dx/nzskkserv-gui/bundle/macos/bundle/dmg/*.dmg
           - os: windows-latest
-            artifact_path: target/dx/nzskkserv-gui/bundle/windows/bundle/mdi/*.msi
+            artifact_path: target/dx/nzskkserv-gui/bundle/windows/bundle/msi/*.msi
 
     steps:
       - name: Checkout repository
