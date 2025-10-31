@@ -14,10 +14,10 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact_path: target/dx/nzskkserv-gui/bundle/linux/bundle/*.AppImage
-          - os: macos-latest
-            artifact_path: target/dx/nzskkserv-gui/bundle/macos/bundle/*.dmg
-          - os: windows-latest
-            artifact_path: target/dx/nzskkserv-gui/bundle/windows/bundle/*.msi
+          # - os: macos-latest
+          #   artifact_path: target/dx/nzskkserv-gui/bundle/macos/bundle/*.dmg
+          # - os: windows-latest
+          #   artifact_path: target/dx/nzskkserv-gui/bundle/windows/bundle/*.msi
 
     steps:
       - name: Checkout repository
