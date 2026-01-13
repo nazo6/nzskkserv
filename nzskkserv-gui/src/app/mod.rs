@@ -50,6 +50,20 @@ pub(super) fn start(server_ctrl: ServerStateController, log_rx: LogReceiver, hid
             )
             .unwrap(),
         )
+        .with_custom_event_handler(|_event, event_loop_target| {
+            // Set activation policy to Accessory on macOS to prevent dock icon
+            #[cfg(target_os = "macos")]
+            {
+                static POLICY_SET: std::sync::Once = std::sync::Once::new();
+                POLICY_SET.call_once(|| {
+                    use dioxus::desktop::tao::platform::macos::{
+                        ActivationPolicy, EventLoopWindowTargetExtMacOS as _,
+                    };
+
+                    event_loop_target.set_activation_policy_at_runtime(ActivationPolicy::Accessory);
+                });
+            }
+        })
         .with_close_behaviour(dioxus::desktop::WindowCloseBehaviour::LastWindowHides);
 
     #[cfg(not(debug_assertions))]
