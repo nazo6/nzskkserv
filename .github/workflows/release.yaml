@@ -50,7 +50,7 @@ jobs:
       - name: Install dioxus-cli
         uses: taiki-e/install-action@v2
         with:
-          tool: dioxus-cli@0.6
+          tool: dioxus-cli@0.7
 
       - name: Build bundle
         run: pnpm bundle
