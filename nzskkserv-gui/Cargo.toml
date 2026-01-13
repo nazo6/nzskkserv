@@ -9,7 +9,7 @@ license = { workspace = true }
 
 [dependencies]
 nzskkserv-core = { path = "../nzskkserv-core" }
-dioxus = { version = "0.6.0", features = [] }
+dioxus = { version = "0.7.2", features = [] }
 anyhow = "1.0.95"
 directories = "6.0.0"
 encoding_rs = "0.8.35"

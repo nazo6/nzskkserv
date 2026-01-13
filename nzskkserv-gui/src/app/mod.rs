@@ -1,5 +1,5 @@
 use dioxus::{
-    desktop::{use_window, WindowBuilder},
+    desktop::{use_window, LogicalSize, WindowBuilder},
     prelude::*,
 };
 
@@ -36,6 +36,7 @@ pub(super) fn start(server_ctrl: ServerStateController, log_rx: LogReceiver, hid
         .with_root_context(LogReceiverContext(log_rx));
 
     let window = WindowBuilder::new()
+        .with_inner_size(LogicalSize::new(800, 600))
         .with_visible(!hide_window)
         .with_title("nzskkserv");
 
@@ -64,7 +65,7 @@ pub(super) fn start(server_ctrl: ServerStateController, log_rx: LogReceiver, hid
                 });
             }
         })
-        .with_close_behaviour(dioxus::desktop::WindowCloseBehaviour::LastWindowHides);
+        .with_close_behaviour(dioxus::desktop::WindowCloseBehaviour::WindowHides);
 
     #[cfg(not(debug_assertions))]
     let config = {

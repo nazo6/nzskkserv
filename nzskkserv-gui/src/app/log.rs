@@ -7,7 +7,7 @@ use crate::logger::{LogData, LogEntry};
 
 use super::LogReceiverContext;
 
-fn use_log() -> ReadOnlySignal<VecDeque<LogEntry>, SyncStorage> {
+fn use_log() -> ReadSignal<VecDeque<LogEntry>, SyncStorage> {
     let mut log_store = use_signal_sync(|| VecDeque::<LogEntry>::with_capacity(128));
     let mut log_receiver: LogReceiverContext = use_context();
 
@@ -33,7 +33,7 @@ fn use_log() -> ReadOnlySignal<VecDeque<LogEntry>, SyncStorage> {
         });
     });
 
-    ReadOnlySignal::new_maybe_sync(log_store)
+    ReadSignal::new_maybe_sync(log_store)
 }
 
 #[component]

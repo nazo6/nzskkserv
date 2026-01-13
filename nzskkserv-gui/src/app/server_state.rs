@@ -3,7 +3,7 @@ use tracing::error;
 
 use crate::server::{ServerState, ServerStateController};
 
-pub fn use_server_state() -> ReadOnlySignal<ServerState> {
+pub fn use_server_state() -> ReadSignal<ServerState> {
     let server_ctrl = use_context::<ServerStateController>();
     let mut server_state = use_signal(|| server_ctrl.borrow().clone());
 
@@ -23,7 +23,7 @@ pub fn use_server_state() -> ReadOnlySignal<ServerState> {
         }
     });
 
-    ReadOnlySignal::new(server_state)
+    ReadSignal::new(server_state)
 }
 
 pub fn use_set_server_state() -> ServerStateController {
