@@ -108,7 +108,6 @@ enum HomeTabItem {
 #[component]
 fn App() -> Element {
     let mut tab = use_signal(|| HomeTabItem::Config);
-    let window = use_window();
     tray::use_tray_menu();
 
     rsx! {
@@ -136,8 +135,9 @@ fn App() -> Element {
                 start_stop_btn::ServerStartStop {}
                 button {
                     class: "btn mr-2",
-                    onclick: move |_| {
-                        window.close();
+                    onclick: |_| {
+                        std::process::exit(0);
+                        #[allow(unreachable_code)] ()
                     },
                     "Quit"
                 }

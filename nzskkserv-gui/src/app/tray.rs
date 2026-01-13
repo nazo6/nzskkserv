@@ -31,7 +31,7 @@ pub(super) fn use_tray_menu() {
             window.set_visible(!window.is_visible());
         }
         "quit" => {
-            window.close();
+            std::process::exit(0);
         }
         _ => {}
     });
