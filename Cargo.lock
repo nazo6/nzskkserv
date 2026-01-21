@@ -3017,7 +3017,7 @@ dependencies = [
 
 [[package]]
 name = "nzskkserv-core"
-version = "0.2.4"
+version = "0.2.5"
 dependencies = [
  "bytes",
  "encoding_rs",
@@ -3033,7 +3033,7 @@ dependencies = [
 
 [[package]]
 name = "nzskkserv-gui"
-version = "0.2.4"
+version = "0.2.5"
 dependencies = [
  "anyhow",
  "auto-launch",
