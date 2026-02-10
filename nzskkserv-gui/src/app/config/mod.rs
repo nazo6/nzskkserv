@@ -12,13 +12,16 @@ pub(super) fn ConfigPanel() -> Element {
 
     let mut modified_config = use_signal(|| server_state.read().config.clone());
 
-    let auto_launch = auto_launch::AutoLaunchBuilder::new()
+    let mut auto_launch = auto_launch::AutoLaunchBuilder::new();
+
+    let auto_launch = auto_launch
         .set_app_name("nzskkserv")
         .set_app_path(std::env::current_exe().unwrap().to_str().unwrap())
-        .set_args(&["hide"])
-        .set_macos_launch_mode(auto_launch::MacOSLaunchMode::SMAppService)
-        .build()
-        .ok();
+        .set_args(&["hide"]);
+    #[cfg(target_os = "macos")]
+    let auto_launch = auto_launch.set_macos_launch_mode(auto_launch::MacOSLaunchMode::SMAppService);
+
+    let auto_launch = auto_launch.build().ok();
     let mut auto_launch_enabled = use_signal(|| {
         auto_launch
             .clone()
