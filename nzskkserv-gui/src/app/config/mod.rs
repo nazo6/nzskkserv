@@ -18,32 +18,41 @@ pub(super) fn ConfigPanel() -> Element {
         .set_args(&["hide"])
         .set_macos_launch_mode(auto_launch::MacOSLaunchMode::SMAppService)
         .build()
-        .unwrap();
-    let mut auto_launch_enabled = use_signal(|| auto_launch.is_enabled().unwrap());
+        .ok();
+    let mut auto_launch_enabled = use_signal(|| {
+        auto_launch
+            .clone()
+            .map(|l| l.is_enabled().unwrap_or(false))
+            .unwrap_or(false)
+    });
 
     rsx! {
         div { class: "flex justify-center",
-            div { class: "h-full p-1 flex flex-col gap-3 w-[50rem]",
+            div { class: "h-full p-1 flex flex-col gap-3 w-200",
                 div {
                     p { "Config path: {crate::config::CONFIG_PATH.to_string_lossy()}" }
-                    p { class: "font-bold text-2xl", "Auto start" }
-                    input {
-                        r#type: "checkbox",
-                        class: "col-span-3 checkbox",
-                        checked: auto_launch_enabled,
-                        onchange: move |ev| {
-                            if ev.checked() {
-                                if let Err(e) = auto_launch.enable() {
-                                    tracing::error!("Failed to enable auto launch: {:?}", e);
+                    if let Some(auto_launch) = auto_launch.clone() {
+                        p { class: "font-bold text-2xl", "Auto start" }
+                        input {
+                            r#type: "checkbox",
+                            class: "col-span-3 checkbox",
+                            checked: auto_launch_enabled,
+                            onchange: move |ev| {
+                                if ev.checked() {
+                                    if let Err(e) = auto_launch.enable() {
+                                        tracing::error!("Failed to enable auto launch: {:?}", e);
+                                        return;
+                                    }
+                                } else if let Err(e) = auto_launch.disable() {
+                                    tracing::error!("Failed to disable auto launch: {:?}", e);
                                     return;
                                 }
-                            } else if let Err(e) = auto_launch.disable() {
-                                tracing::error!("Failed to disable auto launch: {:?}", e);
-                                return;
-                            }
-                            info!("Successfully changed auto launch state: {}", ev.checked());
-                            auto_launch_enabled.set(ev.checked());
-                        },
+                                info!("Successfully changed auto launch state: {}", ev.checked());
+                                auto_launch_enabled.set(ev.checked());
+                            },
+                        }
+                    } else {
+                        p { "Auto launch is not supported on this platform." }
                     }
                 }
 
@@ -91,7 +100,6 @@ pub(super) fn ConfigPanel() -> Element {
                         },
                     }
                 }
-
 
                 div { class: "divider" }
                 div { class: "ml-auto flex gap-2",
