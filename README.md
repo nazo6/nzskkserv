@@ -1,6 +1,6 @@
 # nzskkserv
 
-RustとUIフレームワークのDioxusで構築されたSKKサーバー実装。
+RustとTauri v2 + Reactで構築されたモダンなSKKサーバー実装。
 
 ## Feature
 
@@ -10,8 +10,8 @@ RustとUIフレームワークのDioxusで構築されたSKKサーバー実装�
   - [ ] 様々なエッジケース対応
   - [ ] lisp関数対応?
 - [x] GUI
-  - [x] 変換ログ
-  - [x] 設定
+  - [x] 変換ログ (検索、レベルフィルタ、リアルタイムストリーミング)
+  - [x] 設定 (モダン UI / カードレイアウト)
   - [ ] 変換統計
 - [x] 自動起動
 - [x] Google CGIサーバー経由での変換
@@ -19,18 +19,23 @@ RustとUIフレームワークのDioxusで構築されたSKKサーバー実装�
   - [x] SKK形式
   - [x] mozc形式
 - [x] URLからの辞書のダウンロード
-  - [ ] 辞書のアップデート
+  - [x] 辞書の強制アップデート・キャッシュ更新
 - [ ] OS対応
   - [x] Windows
+  - [x] Linux
+  - [x] macOS
 
 ## Building
 
 ```sh
-cargo binstall dioxus-cli
-pnpm i
+# 依存パッケージのインストール
+pnpm --prefix nzskkserv-gui install
+
+# 開発サーバー起動
+pnpm dev
+
+# ビルド
 pnpm build
-# or
-pnpm bundle
 ```
 
 ## Config
