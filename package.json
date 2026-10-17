@@ -12,7 +12,9 @@
     "build-tw": "pnpm tailwindcss -i ./nzskkserv-gui/input.css -o ./nzskkserv-gui/assets/tailwind.css",
     "build-dx": "cd nzskkserv-gui && dx build --release",
     "bundle-dx_": "cd nzskkserv-gui && cargo build --release",
-    "bundle-dx": "cd nzskkserv-gui && dx bundle --release --trace"
+    "bundle-dx": "cd nzskkserv-gui && dx bundle --release --trace",
+    "dev-gui2": "cd nzskkserv-gui2 && pnpm tauri dev",
+    "build-gui2": "cd nzskkserv-gui2 && pnpm tauri build"
   },
   "keywords": [],
   "author": "",
