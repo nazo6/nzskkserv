@@ -73,3 +73,9 @@ pub async fn get_recent_logs(state: State<'_, AppState>) -> Result<Vec<Formatted
     Ok(history.iter().cloned().collect())
 }
 
+#[tauri::command]
+pub fn exit_app(app_handle: tauri::AppHandle) {
+    app_handle.exit(0);
+}
+
+

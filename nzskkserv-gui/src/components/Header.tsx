@@ -25,8 +25,12 @@ export const Header: FC<HeaderProps> = ({ serverState, onStateChange }) => {
     }
   };
 
-  const quitApp = () => {
-    window.close();
+  const quitApp = async () => {
+    try {
+      await invoke("exit_app");
+    } catch (e) {
+      console.error("Failed to exit app:", e);
+    }
   };
 
   return (

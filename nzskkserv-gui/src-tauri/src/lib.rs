@@ -126,6 +126,7 @@ pub fn run() {
             commands::refresh_dict_cache,
             commands::get_config_path,
             commands::get_recent_logs,
+            commands::exit_app,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
