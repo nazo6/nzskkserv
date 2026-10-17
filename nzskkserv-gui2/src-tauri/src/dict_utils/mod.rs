@@ -54,70 +54,12 @@ impl DictDef {
 
         Ok(dicts)
     }
-
-    pub(crate) fn get_path_url_str(&self) -> String {
-        match &self.path_or_url {
-            DictPath::File { path } => path.to_string_lossy().to_string(),
-            DictPath::Url { url } => url.0.to_string(),
-        }
-    }
-    pub(crate) fn to_type_str(&self) -> String {
-        match &self.path_or_url {
-            DictPath::File { .. } => "File".to_string(),
-            DictPath::Url { .. } => "Url".to_string(),
-        }
-    }
-
-    pub(crate) fn set_path_url(&mut self, str: &str) -> anyhow::Result<()> {
-        match &mut self.path_or_url {
-            DictPath::File { path } => {
-                *path = PathBuf::from(str);
-            }
-            DictPath::Url { url } => {
-                *url = DictUrl(Url::parse(str)?);
-            }
-        }
-        Ok(())
-    }
-
-    pub(crate) fn set_type(&mut self, new_source_type: &str) -> anyhow::Result<()> {
-        match (self.path_or_url.clone(), new_source_type) {
-            (DictPath::File { .. }, "Url") => {
-                self.path_or_url = DictPath::Url {
-                    url: DictUrl(Url::parse("http://example.com").unwrap()),
-                };
-            }
-            (DictPath::Url { .. }, "File") => {
-                self.path_or_url = DictPath::File {
-                    path: PathBuf::new(),
-                };
-            }
-            _ => {}
-        }
-        Ok(())
-    }
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 pub enum DictFormat {
     Skk,
     Mozc,
-}
-
-impl DictFormat {
-    pub(crate) fn to_str(&self) -> String {
-        match self {
-            DictFormat::Skk => "Skk".to_string(),
-            DictFormat::Mozc => "Mozc".to_string(),
-        }
-    }
-    pub(crate) fn from_str(str: &str) -> Self {
-        match str {
-            "Skk" => DictFormat::Skk,
-            "Mozc" => DictFormat::Mozc,
-            _ => DictFormat::Skk,
-        }
-    }
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]

@@ -51,7 +51,7 @@ pub(super) fn start(server_ctrl: ServerStateController, log_rx: LogReceiver, hid
             )
             .unwrap(),
         )
-        .with_custom_event_handler(|_event, event_loop_target| {
+        .with_custom_event_handler(|_event, _event_loop_target| {
             // Set activation policy to Accessory on macOS to prevent dock icon
             #[cfg(target_os = "macos")]
             {
@@ -61,7 +61,7 @@ pub(super) fn start(server_ctrl: ServerStateController, log_rx: LogReceiver, hid
                         ActivationPolicy, EventLoopWindowTargetExtMacOS as _,
                     };
 
-                    event_loop_target.set_activation_policy_at_runtime(ActivationPolicy::Accessory);
+                    _event_loop_target.set_activation_policy_at_runtime(ActivationPolicy::Accessory);
                 });
             }
         })
