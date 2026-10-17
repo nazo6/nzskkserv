@@ -1,0 +1,16 @@
+# タスク定義 (https://mise.jdx.dev/tasks/)
+
+[tasks.install]
+description = "フロントエンドの依存パッケージをインストール"
+dir = "nzskkserv-gui"
+run = "pnpm install"
+
+[tasks.dev]
+description = "Tauriアプリを開発モードで起動"
+dir = "nzskkserv-gui"
+run = "pnpm tauri dev"
+
+[tasks.build]
+description = "Tauriアプリをビルド (バンドル生成含む)"
+dir = "nzskkserv-gui"
+run = "pnpm tauri build"

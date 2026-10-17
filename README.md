@@ -27,15 +27,17 @@ RustとTauri v2 + Reactで構築されたモダンなSKKサーバー実装。
 
 ## Building
 
+タスクは [mise](https://mise.jdx.dev/) で管理しています (`mise.toml`)。
+
 ```sh
 # 依存パッケージのインストール
-pnpm --prefix nzskkserv-gui install
+mise run install
 
 # 開発サーバー起動
-pnpm dev
+mise run dev
 
 # ビルド
-pnpm build
+mise run build
 ```
 
 ## Config
