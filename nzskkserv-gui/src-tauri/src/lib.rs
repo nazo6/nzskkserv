@@ -7,6 +7,7 @@ use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _
 pub mod commands;
 pub mod config;
 pub mod dict_utils;
+pub mod ime;
 pub mod logger;
 pub mod server;
 pub mod tray;

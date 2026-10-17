@@ -36,11 +36,20 @@ impl<H: Handler> Server<H> {
     }
 
     pub async fn start(&mut self) -> Result<(), Error<H::Error>> {
+        let (ready_tx, _) = tokio::sync::oneshot::channel();
+        self.start_with_ready(ready_tx).await
+    }
+
+    pub async fn start_with_ready(
+        &mut self,
+        ready_tx: tokio::sync::oneshot::Sender<()>,
+    ) -> Result<(), Error<H::Error>> {
         let s = &*self;
 
         info!("Starting server: {}:{}", s.config.address, s.config.port);
 
         let listener = TcpListener::bind((self.config.address, self.config.port)).await?;
+        let _ = ready_tx.send(());
 
         let mut aborter = TaskAborter { tasks: Vec::new() };
         loop {
@@ -71,3 +80,40 @@ impl Drop for TaskAborter {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::handler::Entry;
+    use std::net::Ipv4Addr;
+
+    struct DummyHandler;
+    impl Handler for DummyHandler {
+        type Error = std::convert::Infallible;
+        const SERVER_VERSION: &'static str = "test";
+        async fn resolve_word(&self, _input: &str) -> Result<Vec<Entry>, Self::Error> {
+            Ok(vec![])
+        }
+    }
+
+    #[tokio::test]
+    async fn test_server_start_with_ready() {
+        let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
+        let config = ServerConfig {
+            encoding: Encoding::Utf8,
+            address: IpAddr::V4(Ipv4Addr::LOCALHOST),
+            port: 0, // OS assigns an available ephemeral port
+        };
+        let mut server = Server::new(config, DummyHandler);
+
+        let handle = tokio::spawn(async move {
+            let _ = server.start_with_ready(ready_tx).await;
+        });
+
+        // The ready signal must be received successfully
+        assert!(ready_rx.await.is_ok());
+
+        handle.abort();
+    }
+}
+

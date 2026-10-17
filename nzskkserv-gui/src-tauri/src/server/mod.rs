@@ -44,10 +44,17 @@ pub fn start(initial_state: ServerState) -> ServerStateController {
                 prev_config = new_config.clone();
             }
 
+            let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
             let mut server = create_server(new_config).await;
 
+            tauri::async_runtime::spawn(async move {
+                if ready_rx.await.is_ok() {
+                    crate::ime::notify_ime().await;
+                }
+            });
+
             select! {
-                res = server.start() => {
+                res = server.start_with_ready(ready_tx) => {
                     if let Err(e) = res {
                         error!("Server exited unexpectedly: {}, waiting for 5 seconds to restart...", e);
                         tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
