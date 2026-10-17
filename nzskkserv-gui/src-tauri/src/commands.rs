@@ -1,4 +1,6 @@
+use std::collections::VecDeque;
 use std::sync::Arc;
+
 use tauri::State;
 use tokio::sync::Mutex;
 use url::Url;
@@ -10,9 +12,12 @@ use crate::{
     server::{ServerState, ServerStateController},
 };
 
+/// Maximum number of log entries kept in memory and shown in the UI.
+pub const LOG_HISTORY_CAPACITY: usize = 500;
+
 pub struct AppState {
     pub server_ctrl: ServerStateController,
-    pub log_history: Arc<Mutex<bounded_vec_deque::BoundedVecDeque<FormattedLogEntry>>>,
+    pub log_history: Arc<Mutex<VecDeque<FormattedLogEntry>>>,
 }
 
 #[tauri::command]
@@ -25,11 +30,9 @@ pub async fn set_server_running(
     running: bool,
     state: State<'_, AppState>,
 ) -> Result<ServerState, String> {
-    state
-        .server_ctrl
-        .send_modify(|s| {
-            s.running = running;
-        });
+    state.server_ctrl.send_modify(|s| {
+        s.running = running;
+    });
     Ok(state.server_ctrl.borrow().clone())
 }
 
@@ -42,11 +45,9 @@ pub async fn save_config(
         .await
         .map_err(|e| format!("Failed to write config: {}", e))?;
 
-    state
-        .server_ctrl
-        .send_modify(|s| {
-            s.config = new_config;
-        });
+    state.server_ctrl.send_modify(|s| {
+        s.config = new_config;
+    });
 
     Ok(state.server_ctrl.borrow().clone())
 }
@@ -77,5 +78,3 @@ pub async fn get_recent_logs(state: State<'_, AppState>) -> Result<Vec<Formatted
 pub fn exit_app(app_handle: tauri::AppHandle) {
     app_handle.exit(0);
 }
-
-

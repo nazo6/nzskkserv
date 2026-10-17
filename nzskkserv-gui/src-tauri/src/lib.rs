@@ -1,5 +1,6 @@
+use std::collections::VecDeque;
 use std::sync::Arc;
-use bounded_vec_deque::BoundedVecDeque;
+
 use tauri::{Emitter, Manager, WindowEvent};
 use tokio::sync::Mutex;
 use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _, EnvFilter};
@@ -38,12 +39,13 @@ pub fn run() {
 
     let hide_window = std::env::args().any(|arg| arg == "hide");
 
-    let log_history = Arc::new(Mutex::new(BoundedVecDeque::with_capacity(500, 500)));
+    let log_history = Arc::new(Mutex::new(VecDeque::with_capacity(
+        commands::LOG_HISTORY_CAPACITY,
+    )));
 
     let log_history_clone = log_history.clone();
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
@@ -85,6 +87,9 @@ pub fn run() {
                     {
                         let mut hist = history_for_log.lock().await;
                         hist.push_back(formatted.clone());
+                        if hist.len() > commands::LOG_HISTORY_CAPACITY {
+                            hist.pop_front();
+                        }
                     }
                     let _ = app_handle_for_log.emit("log-entry", &formatted);
                 }
