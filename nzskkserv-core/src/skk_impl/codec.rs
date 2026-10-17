@@ -49,15 +49,14 @@ impl<H: Handler> Decoder for SkkCodec<'_, H> {
             let data = match command {
                 '0' => Ok(Some(SkkIncomingEvent::Disconnect)),
                 '1' => {
-                    let content: Option<&str>;
                     // SKKクライアントによって" \n"で終わるものがあったり" "で終わるものがあったりする
-                    if str.ends_with(" \n") {
-                        content = str.get(1..str.len() - 2);
+                    let content: Option<&str> = if str.ends_with(" \n") {
+                        str.get(1..str.len() - 2)
                     } else if str.ends_with(' ') {
-                        content = str.get(1..str.len() - 1);
+                        str.get(1..str.len() - 1)
                     } else {
-                        content = None;
-                    }
+                        None
+                    };
                     match content {
                         Some(content) => Ok(Some(SkkIncomingEvent::Convert(content.to_string()))),
                         None => Err(Error::InvalidIncomingCommand(str.to_string())),

@@ -33,7 +33,7 @@ pub async fn notify_ime() {
                     if name.as_str() == "org.freedesktop.DBus.Error.UnknownMethod" =>
                 {
                     // Fall back to reloading general config if ReloadAddonConfig isn't available
-                    if let Ok(_) = connection
+                    if connection
                         .call_method(
                             Some("org.fcitx.Fcitx5"),
                             "/controller",
@@ -42,6 +42,7 @@ pub async fn notify_ime() {
                             &(),
                         )
                         .await
+                        .is_ok()
                     {
                         info!("Successfully notified fcitx5 via ReloadConfig");
                         return;
@@ -61,4 +62,3 @@ pub async fn notify_ime() {
 
 #[cfg(not(target_os = "linux"))]
 pub async fn notify_ime() {}
-
