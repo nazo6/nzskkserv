@@ -126,7 +126,7 @@ export const ConfigPanel: FC<ConfigPanelProps> = ({
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="flex-1 overflow-auto p-5 space-y-6 max-w-4xl mx-auto w-full">
+      <div className="flex-1 overflow-y-auto overscroll-contain p-5 space-y-6 max-w-4xl mx-auto w-full">
         {/* General Settings Card */}
         <Card>
           <CardHeader>
@@ -254,7 +254,7 @@ export const ConfigPanel: FC<ConfigPanelProps> = ({
       </div>
 
       {/* Floating Action Bar */}
-      <div className="flex items-center justify-between px-6 py-3 border-t border-slate-800 bg-slate-950/90 backdrop-blur-md">
+      <div className="flex items-center justify-between px-6 py-3 border-t border-slate-800 bg-slate-950">
         <div className="text-xs text-slate-400">
           {hasChanges ? (
             <span className="text-amber-400 flex items-center gap-1.5 font-medium">

@@ -34,7 +34,7 @@ export const Header: FC<HeaderProps> = ({ serverState, onStateChange }) => {
   };
 
   return (
-    <header className="flex items-center justify-between px-5 py-3 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md">
+    <header className="flex items-center justify-between px-5 py-3 border-b border-slate-800 bg-slate-950">
       <div className="flex items-center gap-3">
         <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 font-bold text-base shadow-sm shadow-indigo-950/40">
           SKK
