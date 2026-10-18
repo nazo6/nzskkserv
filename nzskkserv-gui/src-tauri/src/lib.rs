@@ -12,6 +12,7 @@ pub mod ime;
 pub mod logger;
 pub mod server;
 pub mod tray;
+pub mod window;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -45,18 +46,14 @@ pub fn run() {
 
     let log_history_clone = log_history.clone();
 
-    tauri::Builder::default()
+    let app = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec!["hide"]),
         ))
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            if let Some(window) = app.get_webview_window("main") {
-                let _ = window.show();
-                let _ = window.unminimize();
-                let _ = window.set_focus();
-            }
+            window::open_main_window(app);
         }))
         .setup(move |app| {
             let config = tauri::async_runtime::block_on(async {
@@ -100,6 +97,8 @@ pub fn run() {
                 log_history: log_history_clone,
             });
 
+            app.manage(window::WindowState::default());
+
             // Setup system tray
             if let Err(e) = tray::setup_tray(app.handle()) {
                 tracing::error!("Failed to setup tray: {:?}", e);
@@ -110,10 +109,8 @@ pub fn run() {
                 app.set_activation_policy(tauri::ActivationPolicy::Accessory);
             }
 
-            if let Some(window) = app.get_webview_window("main") {
-                if hide_window {
-                    let _ = window.hide();
-                }
+            if !hide_window {
+                window::open_main_window(app.handle());
             }
 
             Ok(())
@@ -121,7 +118,7 @@ pub fn run() {
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
                 api.prevent_close();
-                let _ = window.hide();
+                window::destroy_main_window(window.app_handle());
             }
         })
         .invoke_handler(tauri::generate_handler![
@@ -133,6 +130,16 @@ pub fn run() {
             commands::get_recent_logs,
             commands::exit_app,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application");
+
+    app.run(|_app_handle, event| {
+        if let tauri::RunEvent::ExitRequested { code, api, .. } = event {
+            // Prevent exit when all windows are closed, keeping the app running in the system tray.
+            // Only allow exit when requested programmatically (code is Some).
+            if code.is_none() {
+                api.prevent_exit();
+            }
+        }
+    });
 }

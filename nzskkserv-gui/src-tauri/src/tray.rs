@@ -23,16 +23,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         .on_menu_event(move |app_handle, event| {
             match event.id().as_ref() {
                 "show_hide" => {
-                    if let Some(window) = app_handle.get_webview_window("main") {
-                        if let Ok(visible) = window.is_visible() {
-                            if visible {
-                                let _ = window.hide();
-                            } else {
-                                let _ = window.show();
-                                let _ = window.set_focus();
-                            }
-                        }
-                    }
+                    crate::window::toggle_main_window(app_handle);
                 }
                 "toggle_server" => {
                     if let Some(state) = app_handle.try_state::<crate::commands::AppState>() {
@@ -54,17 +45,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                 ..
             } = event
             {
-                let app = tray.app_handle();
-                if let Some(window) = app.get_webview_window("main") {
-                    if let Ok(visible) = window.is_visible() {
-                        if visible {
-                            let _ = window.hide();
-                        } else {
-                            let _ = window.show();
-                            let _ = window.set_focus();
-                        }
-                    }
-                }
+                crate::window::toggle_main_window(tray.app_handle());
             }
         });
 
