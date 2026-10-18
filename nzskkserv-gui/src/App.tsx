@@ -93,7 +93,7 @@ export function App() {
               <Languages className="w-3.5 h-3.5" />
               Conversions
               {conversionLogs.length > 0 && (
-                <span className="ml-1 px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px] text-slate-400 font-mono">
+                <span className="ml-1 px-1.5 py-0.2 rounded-full bg-slate-800/80 text-[10px] text-slate-400 font-mono group-data-[state=active]:bg-slate-700 group-data-[state=active]:text-slate-100">
                   {conversionLogs.length}
                 </span>
               )}
@@ -102,7 +102,7 @@ export function App() {
               <Terminal className="w-3.5 h-3.5" />
               System Logs
               {systemLogs.length > 0 && (
-                <span className="ml-1 px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px] text-slate-400 font-mono">
+                <span className="ml-1 px-1.5 py-0.2 rounded-full bg-slate-800/80 text-[10px] text-slate-400 font-mono group-data-[state=active]:bg-slate-700 group-data-[state=active]:text-slate-100">
                   {systemLogs.length}
                 </span>
               )}
