@@ -65,8 +65,6 @@ impl Handler for ServerHandler {
     const SERVER_VERSION: &'static str = "nzskkserv/0.1.0";
 
     async fn resolve_word(&self, input: &str) -> Result<Vec<Entry>, Self::Error> {
-        info!(nzskkserv_input = input);
-
         let output = match self.dict.get(input).cloned() {
             Some(o) => o,
             None => {
@@ -78,7 +76,24 @@ impl Handler for ServerHandler {
             }
         };
 
-        info!(nzskkserv_output = format!("{:?}", output));
+        let candidate_items: Vec<crate::logger::CandidateItem> = output
+            .iter()
+            .map(|e| crate::logger::CandidateItem {
+                candidate: e.candidate.clone(),
+                description: e.description.clone(),
+            })
+            .collect();
+
+        let candidates_json = serde_json::to_string(&candidate_items).unwrap_or_default();
+
+        info!(
+            target: "nzskkserv::conversion",
+            input = input,
+            candidates = candidates_json.as_str(),
+            "Conversion: {} -> {} candidates",
+            input,
+            output.len()
+        );
 
         Ok(output)
     }

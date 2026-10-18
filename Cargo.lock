@@ -2391,6 +2391,7 @@ dependencies = [
  "reqwest",
  "sanitize-filename",
  "serde",
+ "serde_json",
  "tauri",
  "tauri-build",
  "tauri-plugin-autostart",

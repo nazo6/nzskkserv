@@ -183,6 +183,20 @@ const LogLevelBadge: FC<{ level: string }> = ({ level }) => {
 };
 
 const LogContentDisplay: FC<{ data: LogData }> = ({ data }) => {
+  if (data.type === "Conversion") {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="px-1.5 py-0.5 rounded bg-sky-950/70 border border-sky-800/50 text-[10px] text-sky-400 font-bold">
+          {data.content.input}
+        </span>
+        <span className="text-slate-500 text-[11px]">→</span>
+        <span className="text-slate-200">
+          {data.content.candidates.map((c) => c.candidate).join(" / ") || "(no candidates)"}
+        </span>
+      </div>
+    );
+  }
+
   if (data.type === "ConvertInput") {
     return (
       <div className="flex items-center gap-1.5 text-sky-300">
@@ -209,5 +223,8 @@ const LogContentDisplay: FC<{ data: LogData }> = ({ data }) => {
 };
 
 function formatLogDataContent(data: LogData): string {
+  if (data.type === "Conversion") {
+    return `${data.content.input} ${data.content.candidates.map((c) => c.candidate).join(" ")}`;
+  }
   return data.content;
 }

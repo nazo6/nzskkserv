@@ -1,18 +1,37 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { Toaster, toast } from "sonner";
-import { Terminal, Settings as SettingsIcon } from "lucide-react";
+import { Languages, Terminal, Settings as SettingsIcon } from "lucide-react";
 import { Header } from "./components/Header";
 import { LogPanel } from "./components/LogPanel";
+import { ConversionLogPanel } from "./components/ConversionLogPanel";
 import { ConfigPanel } from "./components/ConfigPanel";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./components/ui/tabs";
 import type { ServerState, FormattedLogEntry } from "./types";
 
+function isConversionLog(log: FormattedLogEntry): boolean {
+  return (
+    log.data.type === "Conversion" ||
+    log.data.type === "ConvertInput" ||
+    log.data.type === "ConvertOutput"
+  );
+}
+
 export function App() {
   const [serverState, setServerState] = useState<ServerState | null>(null);
   const [logs, setLogs] = useState<FormattedLogEntry[]>([]);
-  const [activeTab, setActiveTab] = useState<string>("logs");
+  const [activeTab, setActiveTab] = useState<string>("conversions");
+
+  const conversionLogs = useMemo(
+    () => logs.filter(isConversionLog),
+    [logs]
+  );
+
+  const systemLogs = useMemo(
+    () => logs.filter((log) => !isConversionLog(log)),
+    [logs]
+  );
 
   useEffect(() => {
     // Load initial server state
@@ -47,9 +66,14 @@ export function App() {
     };
   }, []);
 
-  const handleClearLogs = () => {
-    setLogs([]);
-    toast.info("Log display cleared");
+  const handleClearConversionLogs = () => {
+    setLogs((prev) => prev.filter((log) => !isConversionLog(log)));
+    toast.info("Conversion logs cleared");
+  };
+
+  const handleClearSystemLogs = () => {
+    setLogs((prev) => prev.filter(isConversionLog));
+    toast.info("System logs cleared");
   };
 
   return (
@@ -65,12 +89,21 @@ export function App() {
       >
         <div className="flex items-center justify-between px-5 py-2 border-b border-slate-800 bg-slate-900/50">
           <TabsList className="bg-slate-900 border-slate-800">
+            <TabsTrigger value="conversions" className="gap-1.5 text-xs">
+              <Languages className="w-3.5 h-3.5" />
+              Conversions
+              {conversionLogs.length > 0 && (
+                <span className="ml-1 px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px] text-slate-400 font-mono">
+                  {conversionLogs.length}
+                </span>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="logs" className="gap-1.5 text-xs">
               <Terminal className="w-3.5 h-3.5" />
-              Logs
-              {logs.length > 0 && (
+              System Logs
+              {systemLogs.length > 0 && (
                 <span className="ml-1 px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px] text-slate-400 font-mono">
-                  {logs.length}
+                  {systemLogs.length}
                 </span>
               )}
             </TabsTrigger>
@@ -81,8 +114,15 @@ export function App() {
           </TabsList>
         </div>
 
+        <TabsContent value="conversions" className="m-0 flex-1 overflow-hidden">
+          <ConversionLogPanel
+            logs={conversionLogs}
+            onClearLogs={handleClearConversionLogs}
+          />
+        </TabsContent>
+
         <TabsContent value="logs" className="m-0 flex-1 overflow-hidden">
-          <LogPanel logs={logs} onClearLogs={handleClearLogs} />
+          <LogPanel logs={systemLogs} onClearLogs={handleClearSystemLogs} />
         </TabsContent>
 
         <TabsContent value="settings" className="m-0 flex-1 overflow-hidden">

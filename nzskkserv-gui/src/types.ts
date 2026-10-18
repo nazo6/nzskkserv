@@ -21,10 +21,21 @@ export type ServerState = {
   config: Config;
 };
 
+export type CandidateItem = {
+  candidate: string;
+  description?: string | null;
+};
+
+export type ConversionData = {
+  input: string;
+  candidates: CandidateItem[];
+};
+
 export type LogData =
   | { type: "Message"; content: string }
   | { type: "ConvertInput"; content: string }
-  | { type: "ConvertOutput"; content: string };
+  | { type: "ConvertOutput"; content: string }
+  | { type: "Conversion"; content: ConversionData };
 
 export type FormattedLogEntry = {
   id: number;
